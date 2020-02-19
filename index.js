@@ -122,7 +122,6 @@ app.get('/shopify/callback', (req, res) => {
                 }
                 const productRequestUrl = 'https://' + shop + '/admin/api/2020-01/products.json';
                 let options = {
-                    method: 'POST',
                     uri: productRequestUrl,
                     body: {
                         "data":JSON.stringify(obj)
@@ -130,7 +129,7 @@ app.get('/shopify/callback', (req, res) => {
                     headers: {
                         'X-Shopify-Access-Token': accessToken,
                     }
-                }
+                };
                 request.post(options)
                 .then((shopResponse) => {
                     res.end(shopResponse);
