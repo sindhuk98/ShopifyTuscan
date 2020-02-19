@@ -104,7 +104,7 @@ app.get('/shopify/callback', (req, res) => {
 
                 /**POST PRODUCT START */
                 var obj = {
-                    "product":[
+                    "product":
                         {
                             "title": "Saturn",
                             "body_html": "<p>The epitome of elegance</p>",
@@ -118,14 +118,14 @@ app.get('/shopify/callback', (req, res) => {
                                 }
                             ]
                         }
-                    ]
+                    
                 }
                 const productRequestUrl = 'https://' + shop + '/admin/api/2020-01/products.json';
                 let options = {
                     method: 'POST',
                     uri: productRequestUrl,
                     body: {
-                        "data":obj
+                        "data":JSON.stringify(obj)
                     },
                     headers: {
                         'X-Shopify-Access-Token': accessToken,
