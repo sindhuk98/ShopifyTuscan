@@ -16,5 +16,8 @@
         "nonce": "^1.0.4",
         "request": "^2.88.2",
         "request-promise": "^4.2.5"
+    },
+    "engines": {
+        "node": "12.16.0"
     }
 }
