@@ -10,8 +10,9 @@ const request = require('request-promise');
 const apiKey = process.env.SHOPIFY_API_KEY;
 const apiSecret = process.env.SHOPIFY_API_SECRET;
 const scopes = 'read_products';
-const forwardingAddress = "https://fbbe10fc.ngrok.io"; // Replace this with your HTTPS Forwarding address
+const forwardingAddress = "https://shopifytuscan.herokuapp.com"; // Replace this with your HTTPS Forwarding address
 
+/*
 app.get('/', (req, res) => {
     res.send('Hello World!');
 });
@@ -19,6 +20,7 @@ app.get('/', (req, res) => {
 app.listen(3000, () => {
     console.log('Example app listening on port 3000!');
 });
+*/
 
 /**Install Route */
 app.get('/shopify', (req, res) => {
