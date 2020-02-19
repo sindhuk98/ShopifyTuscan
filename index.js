@@ -10,7 +10,7 @@ const request = require('request-promise');
 const apiKey = process.env.SHOPIFY_API_KEY;
 const apiSecret = process.env.SHOPIFY_API_SECRET;
 const port = process.env.PORT || 3000;
-const scopes = 'read_products';
+const scopes = 'read_products,write_products';
 const forwardingAddress = "https://shopifytuscan.herokuapp.com"; // Replace this with your HTTPS Forwarding address
 
 
@@ -101,6 +101,46 @@ app.get('/shopify/callback', (req, res) => {
                     .catch((error) => {
                         res.status(error.statusCode).send(error.error.error_description);
                     });
+
+                /**POST PRODUCT START */
+                var obj = {
+                    "product":[
+                        {
+                            "title": "Saturn",
+                            "body_html": "<p>The epitome of elegance</p>",
+                            "vendor": "Sabarish",
+                            "product_type": "Planets",
+                            "handle": "saturn",
+                            "tags": "",
+                            "images": [
+                                {
+                                    "src": "https://solarsystem.nasa.gov/system/stellar_items/image_files/38_saturn_1600x900.jpg"
+                                }
+                            ]
+                        }
+                    ]
+                }
+                const productRequestUrl = 'https://' + shop + '/admin/api/2020-01/products.json';
+                let options = {
+                    method: 'POST',
+                    uri: productRequestUrl,
+                    body: {
+                        "data":obj
+                    },
+                    headers: {
+                        'X-Shopify-Access-Token': accessToken,
+                    }
+                }
+                request.post(options)
+                .then((shopResponse) => {
+                    res.end(shopResponse);
+                })
+                .catch((error) => {
+                    res.status(error.statusCode).send(error.error.error_description);
+                });
+
+                /**POST PRODUCT END */
+
                 // TODO
                 // Use access token to make API call to 'shop' endpoint
             })
