@@ -122,13 +122,13 @@ app.get('/shopify/callback', (req, res) => {
                 }
                 const productRequestUrl = 'https://' + shop + '/admin/api/2020-01/products.json';
                 let options = {
-                    body: {
-                        "data":JSON.stringify(obj)
-                    },
+                    body: obj,
                     headers: {
-                        'X-Shopify-Access-Token': accessToken,
-                    }
-                };
+                      "Content-type": "application/json",
+                      'X-Shopify-Access-Token': accessToken
+                    },
+                    json: true // Automatically stringifies the body to JSON
+                  };
                 request.post(productRequestUrl,options)
                 .then((shopResponse) => {
                     res.end(shopResponse);
