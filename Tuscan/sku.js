@@ -12,39 +12,49 @@ const skuApiOptions = {
 };
 
 /**Async Method to call the sku endpoint */
-const getSkuDetails = async (skuEndpoint) => {
+//skuEndpoints is an array?YES
+
+const getSkuDetails = async (skuEndpoints) => {
     /**Variants to hold the SKU Variants for Shopify */
     let variants = [];
-    const sku = await request(skuEndpoint, skuApiOptions);
+    let sku;
+    for (const skuEndpoint of skuEndpoints) {
+        sku = await request(skuEndpoint, skuApiOptions);
+
+        variants.push(
+            {
+                "option1": sku.response.color,
+                "inventory_quantity": sku.response.available_quantity,
+                "inventory_policy": "continue",
+                "inventory_management": "shopify"
+            }
+        )
+    }
+    
 
     /**Buffer the base64 data from the Main Image URL obtained from sku response */
+    // NOT TESTED - image functions
+    console.log(sku.response.main_image.url);
     let imageBufferData = await getImageData(sku.response.main_image.url);
+    // console.log(imageBufferData);
     if (imageBufferData === undefined) {
         imageBufferData = "";
     }
-    variants.push(
-        {
-            "option1": sku.response.color,
-            "inventory_quantity": sku.response.available_quantity,
-            "inventory_policy": "continue",
-            "inventory_management": "shopify"
-        }
-    )
-
+    
     /**Create the shopify products and Return it */
     const shopifyProduct = {
         "product": {
             "title": sku.response.name,
             "body_html": "<p>The epitome of elegance</p>",
             "vendor": "Tuscany Leather",
-            "product_type": "categType",
+            "product_type": "categType", //categType cascade from categories (too many async calls:-- or store in main function)
             "handle": "saturn",
             "tags": "",
             "variants": variants,
             "images": [
                 {
                     "attachment": imageBufferData,
-                    // "filename": 'test.jpg'
+                    "filename": 'test.jpg'
                 }
             ]
         }
@@ -52,17 +62,19 @@ const getSkuDetails = async (skuEndpoint) => {
     return shopifyProduct;
 }
 
+
+
 /**Async function that gets the base64 data from the image url endpoint */
 const getImageData = async (url) => {
     const getImageOptions = {
         url: url,
         encoding: null,
-        resolveWithFullResponse: true,
+        // resolveWithFullResponse: true,
         method: 'Get'
     };
     try {
         const imgDataRes = await request(getImageOptions);
-        return imgDataRes;
+        return imgDataRes.toString('base64');
     }
     catch (error) {
         //do nothing

@@ -9,16 +9,19 @@ const request = require('request-promise');
 
 const productsMod = require('./Tuscan/products');
 const skusMod = require('./Tuscan/sku');
-
-
+const postShopify = require('./Shopify/product');
 
 (async () => {
     const results = await productsMod.getProductsCodesSkuEndPoints();
 
+    // results is an array of arrays
+    // result will have an array of SKUs corresponding to one single product
     for (const result of results) {
+        // use getSkuDetails to return a product with all SKU variants supplied from result
         const res = await skusMod.getSkuDetails(result);
-            console.log(res);
-
+        console.log("PRODUCT TO BE POSTED: ");
+        console.log(res);
+        postShopify.postProds(res);
     }
 
 })();

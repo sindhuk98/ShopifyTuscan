@@ -21,10 +21,13 @@ const getProductCodes = async () => {
     const productCodes = [];
     const categoriesList = await categories.getCatergories();
     for (const category of categoriesList) {
-        productCodes.push(category.products);
+        if (category.products !== undefined) {
+            productCodes.push(category.products);
+        }
         //console.log(category.products);
     }
-    return productCodes.flat();
+    return productCodes;
+    // return productCodes.flat();
 }
 
 /** getProductsCodesSkuEndPoints: Is an Asyn function that returns all the sku endpoints for all the products
@@ -35,12 +38,16 @@ const getProductsCodesSkuEndPoints = async () => {
     let skuEndPoint = [];
     const productsList = await getProductCodes();
 
-    for (const product of productsList) {
-        let productResponse = await request(productRequestUrl + product, productApiOptions);
-        //skuEndPoint.push(productResponse.response.items);
-        productResponse.response.items.map((items) => {
-            skuEndPoint.push(items.details_endpoint)
-        });
+    for (const products of productsList) {
+        for (const product of products) {
+            let prodEndPoint = [];
+            let productResponse = await request(productRequestUrl + product, productApiOptions);
+            //skuEndPoint.push(productResponse.response.items);
+            productResponse.response.items.map((items) => {
+                prodEndPoint.push(items.details_endpoint);
+            });
+            skuEndPoint.push(prodEndPoint);
+        }
     }
     return skuEndPoint;
 }
@@ -50,19 +57,3 @@ module.exports = {
     getProductCodes: getProductCodes,
     getProductsCodesSkuEndPoints: getProductsCodesSkuEndPoints
 }
-
-
-
-
-
-
-
-
-
-// productsList.map((product) => {
-//     let productResponse = await getProduct(product);
-//     skuEndPoint = productResponse.response.items.map((item) => {
-//         item.details_endpoint
-//     })
-
-// });
