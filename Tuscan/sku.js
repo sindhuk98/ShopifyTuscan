@@ -14,7 +14,7 @@ const skuApiOptions = {
 /**Async Method to call the sku endpoint */
 //skuEndpoints is an array?YES
 
-const getSkuDetails = async (skuEndpoints) => {
+const getSkuDetails = async (skuEndpoints, categType) => {
     /**Variants to hold the SKU Variants for Shopify */
     let variants = [];
     let sku;
@@ -47,7 +47,7 @@ const getSkuDetails = async (skuEndpoints) => {
             "title": sku.response.name,
             "body_html": "<p>The epitome of elegance</p>",
             "vendor": "Tuscany Leather",
-            "product_type": "categType", //categType cascade from categories (too many async calls:-- or store in main function)
+            "product_type": categType, //categType cascade from categories (too many async calls:-- or store in main function)
             "handle": "saturn",
             "tags": "",
             "variants": variants,

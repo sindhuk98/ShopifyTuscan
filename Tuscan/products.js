@@ -13,33 +13,16 @@ const productApiOptions = {
     json: true // Automatically stringifies the body to JSON
 };
 
-/** getProductCodes: Is an Asyn function that returns all the productcodes for all the categories
- * One Category can have many product codes
- * One to Many -- Category to Products
-*/
-const getProductCodes = async () => {
-    const productCodes = [];
-    const categoriesList = await categories.getCatergories();
-    for (const category of categoriesList) {
-        if (category.products !== undefined) {
-            productCodes.push(category.products);
-        }
-        //console.log(category.products);
-    }
-    return productCodes;
-    // return productCodes.flat();
-}
 
 /** getProductsCodesSkuEndPoints: Is an Asyn function that returns all the sku endpoints for all the products
  * One Product can have many Sku's
  * One to Many -- Product to Sku's
 */
-const getProductsCodesSkuEndPoints = async () => {
+const getProductsCodesSkuEndPoints = async (category) => {
     let skuEndPoint = [];
-    const productsList = await getProductCodes();
+    const productsList = category.products;
 
-    for (const products of productsList) {
-        for (const product of products) {
+    for (const product of productsList) {
             let prodEndPoint = [];
             let productResponse = await request(productRequestUrl + product, productApiOptions);
             //skuEndPoint.push(productResponse.response.items);
@@ -47,13 +30,8 @@ const getProductsCodesSkuEndPoints = async () => {
                 prodEndPoint.push(items.details_endpoint);
             });
             skuEndPoint.push(prodEndPoint);
-        }
     }
     return skuEndPoint;
 }
 
-
-module.exports = {
-    getProductCodes: getProductCodes,
-    getProductsCodesSkuEndPoints: getProductsCodesSkuEndPoints
-}
+exports.getProductsCodesSkuEndPoints = getProductsCodesSkuEndPoints;
