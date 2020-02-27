@@ -17,10 +17,10 @@ const skuApiOptions = {
 const getSkuDetails = async (skuEndpoints, categType) => {
     /**Variants to hold the SKU Variants for Shopify */
     let variants = [];
+    let images = [];
     let sku;
     for (const skuEndpoint of skuEndpoints) {
         sku = await request(skuEndpoint, skuApiOptions);
-
         variants.push(
             {
                 "option1": sku.response.color,
@@ -29,17 +29,25 @@ const getSkuDetails = async (skuEndpoints, categType) => {
                 "inventory_management": "shopify"
             }
         )
+
+        /**Buffer the base64 data from the Main Image URL obtained from sku response */
+        let imageBufferData = await getImageData(sku.response.main_image.url);
+        if (imageBufferData === undefined) {
+            imageBufferData = "";
+        }
+        console.log(sku.response.main_image.url,sku.response.name);
+        images.push(
+            {
+                "attachment": imageBufferData,
+                "filename": "test.jpg"
+            }
+        )
+
     }
     
 
-    /**Buffer the base64 data from the Main Image URL obtained from sku response */
+
     // NOT TESTED - image functions
-    console.log(sku.response.main_image.url);
-    let imageBufferData = await getImageData(sku.response.main_image.url);
-    // console.log(imageBufferData);
-    if (imageBufferData === undefined) {
-        imageBufferData = "";
-    }
     
     /**Create the shopify products and Return it */
     const shopifyProduct = {
@@ -51,12 +59,7 @@ const getSkuDetails = async (skuEndpoints, categType) => {
             "handle": "saturn",
             "tags": "",
             "variants": variants,
-            "images": [
-                {
-                    "attachment": imageBufferData,
-                    "filename": 'test.jpg'
-                }
-            ]
+            "images": images
         }
     }
     return shopifyProduct;

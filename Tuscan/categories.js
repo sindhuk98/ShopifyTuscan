@@ -29,12 +29,7 @@ const getCatergories = async () => {
         const categoriesResponse = await request(categoriesApiOptions);
         const categories = categoriesResponse.response.slice(0, 2);
 
-        for (const category of categories) {
-            if (category.products !== undefined) {
-                categoriesList.push(category);
-            };
-        };
-        return categoriesList;
+        return categories;
     }
     catch (error) {
         return error;

@@ -14,14 +14,19 @@ const postShopifyMod = require('./Shopify/product');
 
 (async () => {
     const categories = await categoriesMod.getCatergories();
+    // console.log(categories);
     for (const category of categories) {
-        const prodEndPoints = await productsMod.getProductsCodesSkuEndPoints(category);
-        for (const varEndPoints of prodEndPoints){
-            const shopifyProduct = await skusMod.getSkuDetails(varEndPoints, category.name);
-            console.log("POSTING:");
-            console.log(shopifyProduct);
-            await postShopifyMod.postProds(shopifyProduct);
+        if (category.products !== undefined) {
+            const prodEndPoints = await productsMod.getProductsCodesSkuEndPoints(category);
+            // console.log(prodEndPoints);
+            for (const varEndPoints of prodEndPoints) {
+                const shopifyProduct = await skusMod.getSkuDetails(varEndPoints, category.name);
+                // console.log("POSTING:");
+                // console.log(shopifyProduct);
+                await postShopifyMod.postProds(shopifyProduct);
+            }
         }
+
     }
 
 })();
