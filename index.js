@@ -6,8 +6,21 @@ const cookie = require('cookie');
 const nonce = require('nonce')();
 const querystring = require('querystring');
 const request = require('request-promise');
-const fs = require('fs');
 
+const productsMod = require('./Tuscan/products');
+const skusMod = require('./Tuscan/sku');
+
+
+
+ (async () => {
+    const results = await productsMod.getProductsCodesSkuEndPoints();
+    const res = await skusMod.getSkuDetails(results[0]);
+    console.log(res);
+  })();
+
+
+
+/****************************************************************************
 const apiKey = process.env.SHOPIFY_API_KEY;
 const apiSecret = process.env.SHOPIFY_API_SECRET;
 const port = process.env.PORT || 3000;
@@ -16,14 +29,14 @@ const forwardingAddress = "https://ba17b958.ngrok.io"; // Replace this with your
 let accessToken = '';
 
 app.get('/', (req, res) => {
-    res.send('Hello World!');
+    res.send('Welcome to My ShopifyTuscanLeather Store!');
 });
 
 app.listen(port, () => {
-    console.log('Example app listening on port 3000!');
+    console.log('ShopifyTuscanLeather listening on port 3000!');
 });
 
-/**Install Route */
+/**Install Route 
 app.get('/shopify', (req, res) => {
     const shop = req.query.shop;
     if (shop) {
@@ -42,7 +55,7 @@ app.get('/shopify', (req, res) => {
     }
 });
 
-/**Callback Route */
+/**Callback Route 
 app.get('/shopify/callback', (req, res) => {
     const { shop, hmac, code, state } = req.query;
     const stateCookie = cookie.parse(req.headers.cookie).state;
@@ -77,7 +90,7 @@ app.get('/shopify/callback', (req, res) => {
             return res.status(400).send('HMAC validation failed');
         }
 
-        /** HMAC Validation*/
+        /** HMAC Validation
         const accessTokenRequestUrl = 'https://' + shop + '/admin/oauth/access_token';
         const accessTokenPayload = {
             client_id: apiKey,
@@ -93,7 +106,7 @@ app.get('/shopify/callback', (req, res) => {
                     'X-Shopify-Access-Token': accessToken,
                 };
 
-                /*Get Shopiy Shop Data */
+                /*Get Shopiy Shop Data 
                 request.get(shopRequestUrl, { headers: shopRequestHeaders })
                     .then((shopResponse) => {
                         res.end(shopResponse);
@@ -112,7 +125,7 @@ app.get('/shopify/callback', (req, res) => {
 });
 
 
-/*Get Tuscan API Categories */
+/*Get Tuscan API Categories 
 const requestUrl = "https://stage.tuscanyleather.it/api/v1/";
 const categoryRequestUrl = requestUrl + 'categories';
 const productRequestUrl = requestUrl + 'product-info?code='
@@ -134,50 +147,60 @@ let productApiOptions = {
 };
 
 let num = 1;
-var BreakException = {};
+//var BreakException = {};
 const getCatergories = async () => {
-    await request(tuscanApiOptions).then((res) => {
-        let sample = res.response.slice(0,1);
+    try {
+        const categories = await request(tuscanApiOptions);
+        let sample = categories.response.slice(0,1);
         //console.log(sample);
-        try {
-            sample.forEach((category) => {
-                if (num >= 20) throw BreakException;
-                if (category.products !== undefined) {
-                    let products = category.products;
-                    //console.log(products);
-                    products.forEach((product) => {
-                        num++;
-                        if (num >= 20) throw BreakException;
-                        getProducts(product);
-                    });
 
-                }
-            });
-        }
-        catch (e) {
-            console.log(num+" throw catch for products");
-        }
+        sample.forEach((category) => {
+            // if (num >= 20) throw BreakException;
+            if (category.products !== undefined) {
+                let products = category.products;
+                //console.log(products);
+                products.forEach((product) => {
+                   // num++;
+                    //if (num >= 20) throw BreakException;
+                  getProducts(product);
+                // console.log(products);
+                });
 
-    }).catch((err) => {
-        console.log("category err");
-    });
+            }
+        });
+    }
+    catch (e) {
+        console.log(e);
+    }
 };
 
+const getProducts = async (productcode) => {
+    try{
+        const products = await request(productRequestUrl + productcode, productApiOptions);
+        console.log(products.response);
+    }
+    catch(e){
+        console.log(num++ +"product err "+ e);
+    }
+ 
+}
+
 getCatergories();
-
-
+***/
+/******************************* ************************************************************************
 let shopifyProduct = [];
 const getProducts = async (productcode) => {
     await request(productRequestUrl + productcode, productApiOptions).then((prod) => {
         //console.log(prod.response.items);
         let products = prod.response.items;
         // try {
-            products.forEach((product) => {
-                num++;
-                // if (num >= 20) throw BreakException;
-                getSku(product.details_endpoint);
-                //r.push(item.details_endpoint);
-            });
+        products.forEach((product) => {
+            num++;
+            // if (num >= 20) throw BreakException;
+            await getSku(product.details_endpoint);
+
+            //r.push(item.details_endpoint);
+        });
         // }
         // catch (e) {
         //     console.log("throw catch for sku")
@@ -208,11 +231,13 @@ const getSku = async (skuEndpoint) => {
             }
         });
     }).catch((err) => {
-        console.log(JSON.stringify(err, null, 2));
+        console.log(err);
     });
 
 }
 
+
+************************************************************************************************* */
 // categories.response.forEach((category) =>{
 //     console.log(category.name);
 // })
