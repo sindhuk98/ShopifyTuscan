@@ -12,11 +12,16 @@ const skusMod = require('./Tuscan/sku');
 
 
 
- (async () => {
+(async () => {
     const results = await productsMod.getProductsCodesSkuEndPoints();
-    const res = await skusMod.getSkuDetails(results[0]);
-    console.log(res);
-  })();
+
+    for (const result of results) {
+        const res = await skusMod.getSkuDetails(result);
+            console.log(res);
+
+    }
+
+})();
 
 
 
