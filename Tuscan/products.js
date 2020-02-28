@@ -27,7 +27,7 @@ const getProductsCodesSkuEndPoints = async (category) => {
             let productResponse = await request(productRequestUrl + product, productApiOptions);
             //skuEndPoint.push(productResponse.response.items);
             productResponse.response.items.map((items) => {
-                prodEndPoint.push(items.details_endpoint);
+                prodEndPoint.push(items);
             });
             skuEndPoint.push(prodEndPoint);
     }

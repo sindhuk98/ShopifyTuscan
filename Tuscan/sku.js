@@ -20,11 +20,13 @@ const getSkuDetails = async (skuEndpoints, categType) => {
     let images = [];
     let sku;
     for (const skuEndpoint of skuEndpoints) {
-        sku = await request(skuEndpoint, skuApiOptions);
+        sku = await request(skuEndpoint.details_endpoint, skuApiOptions);
         variants.push(
             {
                 "option1": sku.response.color,
                 "inventory_quantity": sku.response.available_quantity,
+                "sku": skuEndpoint.sku,
+                "price": sku.response.prices.list.default,
                 "inventory_policy": "continue",
                 "inventory_management": "shopify"
             }
