@@ -12,7 +12,7 @@ const apiSecret = process.env.SHOPIFY_API_SECRET;
 const port = process.env.PORT || 3000;
 const scopes = 'read_products,write_products';
 const forwardingAddress = "https://shopifytuscan.herokuapp.com"; // Replace this with your HTTPS Forwarding address
-let accessToken = '';
+let accessToken = '4111ac49a15891c4ea08ba9e9fc13b9f';
 
 const indexDetails = require('./index');
 
