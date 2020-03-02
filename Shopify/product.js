@@ -1,7 +1,7 @@
 /**Add the Required NPM Modules */
 const request = require('request-promise');
 
-const postRequestUrl = 'https://tuscstore.myshopify.com/admin/api/2020-01/products.json';
+const postRequestUrl = 'https://shangri-lafashion.myshopify.com/admin/api/2020-01/products.json';
 
 
 /* SHOPIFY's POST call */
