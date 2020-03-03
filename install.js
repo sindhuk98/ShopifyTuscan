@@ -11,7 +11,7 @@ const apiKey = process.env.SHOPIFY_API_KEY;
 const apiSecret = process.env.SHOPIFY_API_SECRET;
 const port = process.env.PORT || 3000;
 const scopes = 'read_products,write_products';
-const forwardingAddress = "https://b6b1c22e.ngrok.io"; // Replace this with your HTTPS Forwarding address
+const forwardingAddress = "https://shopifytuscan.herokuapp.com"; // Replace this with your heroku/ngrok Forwarding address
 let accessToken = '';//4111ac49a15891c4ea08ba9e9fc13b9f - shangri-lafashion
 
 const indexDetails = require('./index');
