@@ -6,7 +6,7 @@ const putVariantImages = async(productPostResponse, accessToken) => {
     for (variant of productPostResponse.product.variants) {
         if (productPostResponse.product.images[n] !== undefined) {
             console.log("variantid: " + variant.id);
-            const imageid = productPostResponse.product.images[n].id;
+            const imageid = productPostResponse.product.images[idx].id;
             console.log("imageid: " + imageid);
             const new_image = {
                 variant: {
