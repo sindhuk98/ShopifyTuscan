@@ -4,7 +4,7 @@ const constants = require('./constants');
 const putVariantImages = async(productPostResponse, accessToken) => {
     let idx = 0;
     for (variant of productPostResponse.product.variants) {
-        if (productPostResponse.product.images[n] !== undefined) {
+        if (productPostResponse.product.images[idx] !== undefined) {
             console.log("variantid: " + variant.id);
             const imageid = productPostResponse.product.images[idx].id;
             console.log("imageid: " + imageid);
