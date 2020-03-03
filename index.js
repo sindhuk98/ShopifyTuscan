@@ -11,11 +11,11 @@ const runProject = async (accessToken) => {
     const categories = await categoriesMod.getCatergories();
     for (const category of categories) {
         if (category.products !== undefined) {
-            const prodEndPoints = await productsMod.getProductsCodesSkuEndPoints(category);
-            for (const varEndPoints of prodEndPoints) {
+            const prodBodyAndSkuEndPoints = await productsMod.getProductsCodesSkuEndPoints(category);
+            for (const varEndPoints of prodBodyAndSkuEndPoints) {
                 const shopifyProduct = await skusMod.getSkuDetails(varEndPoints, category.name);
-                // console.log("POSTING:");
-                // console.log(shopifyProduct);
+                console.log("POSTING:");
+                console.log(shopifyProduct);
                 await postShopifyMod.postProds(shopifyProduct, accessToken);
             }
         }
@@ -23,5 +23,7 @@ const runProject = async (accessToken) => {
     }
 
 };
+
+//runProject('abc');
 
 exports.runProject = runProject;

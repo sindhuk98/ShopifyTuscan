@@ -1,7 +1,7 @@
 /**Add the Required NPM Modules */
 const request = require('request-promise');
 
-const postRequestUrl = 'https://shangri-lafashion.myshopify.com/admin/api/2020-01/products.json';
+const constants = require('./constants')
 
 
 /* SHOPIFY's POST call */
@@ -9,7 +9,7 @@ const postRequestUrl = 'https://shangri-lafashion.myshopify.com/admin/api/2020-0
 const postProds = async (new_product, accessToken) => {
     const postOptions = {
         method: 'POST',
-        uri: postRequestUrl,
+        uri: constants.postRequestUrl,
         json: true,
         headers: {
             'X-Shopify-Access-Token': accessToken, //hardcode for time-being************************

@@ -12,14 +12,15 @@ const skuApiOptions = {
 };
 
 /**Async Method to call the sku endpoint */
-//skuEndpoints is an array?YES
+//prodBodyAndSkuURLs is an object?YES
+//ex: {body_html: "string", prodEndpoint: [{sku: "string", details_endpoint: "urlstring"}, ... ]}
 
-const getSkuDetails = async (skuEndpoints, categType) => {
+const getSkuDetails = async (prodBodyAndSkuURLs, categType) => {
     /**Variants to hold the SKU Variants for Shopify */
     let variants = [];
     let images = [];
     let sku;
-    for (const skuEndpoint of skuEndpoints) {
+    for (const skuEndpoint of prodBodyAndSkuURLs.endpoints) {
         sku = await request(skuEndpoint.details_endpoint, skuApiOptions);
         variants.push(
             {
@@ -30,7 +31,7 @@ const getSkuDetails = async (skuEndpoints, categType) => {
                 "inventory_policy": "continue",
                 "inventory_management": "shopify"
             }
-        )
+        );
 
         /**Buffer the base64 data from the Main Image URL obtained from sku response */
         let imageBufferData = await getImageData(sku.response.main_image.url);
@@ -47,20 +48,17 @@ const getSkuDetails = async (skuEndpoints, categType) => {
 
     }
     
-
-
-    // NOT TESTED - image functions
-    
     /**Create the shopify products and Return it */
     const shopifyProduct = {
         "product": {
             "title": sku.response.name,
-            "body_html": "<p>The epitome of elegance</p>",
+            "body_html": prodBodyAndSkuURLs.body_html,
             "vendor": "Tuscany Leather",
             "product_type": categType, //categType cascade from categories (too many async calls:-- or store in main function)
             "handle": "saturn",
             "tags": "",
             "variants": variants,
+            "options": [{name: "Color", "position": 1}],
             "images": images
         }
     }
