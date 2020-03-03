@@ -17,7 +17,7 @@ const postProds = async (new_product, accessToken) => {
         },
         body: new_product
     };
-    await request(postOptions)
+    return await request(postOptions)
 };
 
    module.exports = {

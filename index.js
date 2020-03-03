@@ -2,6 +2,7 @@ const productsMod = require('./Tuscan/products');
 const categoriesMod = require('./Tuscan/categories');
 const skusMod = require('./Tuscan/sku');
 const postShopifyMod = require('./Shopify/product');
+const putImagesShopifyMod = require('./Shopify/variantImages');
 // const installDetails = require('./install');
 
 
@@ -15,8 +16,9 @@ const runProject = async (accessToken) => {
             for (const varEndPoints of prodBodyAndSkuEndPoints) {
                 const shopifyProduct = await skusMod.getSkuDetails(varEndPoints, category.name);
                 console.log("POSTING:");
-                console.log(shopifyProduct);
-                await postShopifyMod.postProds(shopifyProduct, accessToken);
+                // console.log(shopifyProduct);
+                const res = await postShopifyMod.postProds(shopifyProduct, accessToken);
+                await putImagesShopifyMod.putVariantImages(res, accessToken);
             }
         }
 
