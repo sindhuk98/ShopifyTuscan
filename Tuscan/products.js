@@ -46,7 +46,7 @@ const createProductDescription = ((productResponse) => {
     const length = JSON.stringify(productResponse.response.dimensions.product.length).replace(/"/g,'');
     const height = JSON.stringify(productResponse.response.dimensions.product.height).replace(/"/g,'');
     const width = JSON.stringify(productResponse.response.dimensions.product.width).replace(/"/g,'');
-    const dimensionValue = length + " x " + width + " x " + height + " cm";
+    const dimensionValue = width + " x " + height + " x " + length + " cm";
     const weightValue = JSON.stringify(productResponse.response.dimensions.product.weight).replace(/"/g,'') + " kg";
     const featuresObj = productResponse.response.features;
 
