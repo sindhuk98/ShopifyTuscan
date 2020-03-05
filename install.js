@@ -6,12 +6,13 @@ const cookie = require('cookie');
 const nonce = require('nonce')();
 const querystring = require('querystring');
 const request = require('request-promise');
+const qlrequest = require('graphql-request');
 
 const apiKey = process.env.SHOPIFY_API_KEY;
 const apiSecret = process.env.SHOPIFY_API_SECRET;
 const port = process.env.PORT || 3000;
 const scopes = 'read_products,write_products';
-const forwardingAddress = "https://shopifytuscan.herokuapp.com"; // Replace this with your heroku/ngrok Forwarding address
+const forwardingAddress = "https://787bb586.ngrok.io"; // Replace this with your heroku/ngrok Forwarding address
 let accessToken = '';//4111ac49a15891c4ea08ba9e9fc13b9f - shangri-lafashion
 
 const indexDetails = require('./index');
@@ -106,7 +107,8 @@ app.get('/shopify/callback', (req, res) => {
                         res.status(error.statusCode).send(error.error.error_description);
                     });
 
-                indexDetails.runProject(accessToken);
+                // indexDetails.runProject(accessToken);
+                indexDetails.syncPriceQuantity(accessToken);
 
             })
             .catch((error) => {
@@ -116,6 +118,43 @@ app.get('/shopify/callback', (req, res) => {
         res.status(400).send('Required parameters missing');
     }
 });
+
+
 module.exports = {
     accessToken: accessToken
 };
+
+/**************************** TESTING ONLY ***************************************/
+//Test for updating or replace with integrating all products from Tuscany afresh
+app.get('/sindhu', (req, res) => {
+    
+    qlRequestUrl = 'https://tuscstore.myshopify.com/admin/api/2020-01/graphql.json';
+    const query = `{
+  products(first:50) {
+    edges {
+      node {
+        title
+        variants(first:1){
+            edges{
+                node{
+                    sku
+                    price
+                }
+            }
+        }
+      }
+    }
+  }
+}`
+
+    const client = new qlrequest.GraphQLClient(qlRequestUrl, { headers: {'X-Shopify-Access-Token': 'f510b0c596adce9e611503dfbcb11faa'} });
+    client.request(query).then(data => console.log(JSON.stringify(data)));
+    res.send('Congrats Sindhu!');
+});
+
+app.get('/updateExisting', (req, res) => {
+   
+    
+})
+
+

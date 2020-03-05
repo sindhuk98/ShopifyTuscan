@@ -1,6 +1,32 @@
 const request = require('request-promise');
 const constants = require('./constants');
 
+const getVariantInfo = async(accessToken) => {
+    const productVariantInfo = await request.get(constants.getShopifyUrl, { headers: { 'X-Shopify-Access-Token': accessToken }, json: true });
+    return productVariantInfo;
+}
+
+const putVariantInfo = async (accessToken,price) => {
+    const updated_variant = {
+        "variant": {
+          "price": price
+        }
+      }
+    console.log("id: " + variant.id);  
+    const putOptions = {
+        method: 'PUT',
+        uri: constants.putRequestUrl + variant.id + ".json",
+        json: true,
+        headers: {
+            'X-Shopify-Access-Token': accessToken, //hardcode for time-being************************
+            'content-type': 'application/json'
+        },
+        body: updated_variant
+    };
+    await request(putOptions);
+}
+
+
 const putVariantImages = async(productPostResponse, accessToken) => {
     let idx = 0;
     for (variant of productPostResponse.product.variants) {
@@ -31,5 +57,7 @@ const putVariantImages = async(productPostResponse, accessToken) => {
 }
 
 module.exports = {
-    putVariantImages: putVariantImages
+    putVariantImages: putVariantImages,
+    getVariantInfo: getVariantInfo,
+    putVariantInfo: putVariantInfo
 }

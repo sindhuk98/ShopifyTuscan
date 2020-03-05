@@ -14,7 +14,7 @@ const skuApiOptions = {
 /**Async Method to call the sku endpoint */
 //prodBodyAndSkuURLs is an object?YES
 //ex: {body_html: "string", prodEndpoint: [{sku: "string", details_endpoint: "urlstring"}, ... ]}
-
+//FOR POSTING:
 const getSkuDetails = async (prodBodyAndSkuURLs, categType) => {
     /**Variants to hold the SKU Variants for Shopify */
     let variants = [];
@@ -47,7 +47,7 @@ const getSkuDetails = async (prodBodyAndSkuURLs, categType) => {
         )
 
     }
-    
+
     /**Create the shopify products and Return it */
     const shopifyProduct = {
         "product": {
@@ -85,7 +85,13 @@ const getImageData = async (url) => {
 
 }
 
+const requestUpdateSkuDetails = async(skucode) => {
+    const updatedInfo = await request(constants.skuRequestUrl + skucode, skuApiOptions);
+    return updatedInfo;
+}
+
 module.exports = {
     getSkuDetails: getSkuDetails,
-    getImageData: getImageData
+    getImageData: getImageData,
+    requestUpdateSkuDetails: requestUpdateSkuDetails
 }
