@@ -5,7 +5,6 @@ const postShopifyMod = require('./Shopify/product');
 const putShopifyMod = require('./Shopify/variantImages');
 const putInventoryMod = require('./Shopify/Inventory');
 // const installDetails = require('./install');
-const request = require('request-promise');
 
 // console.log(process.env);
 
@@ -49,6 +48,7 @@ const syncPriceQuantity = async (accessToken) => {
         }
     }
 }
+
 //syncPriceQuantity('abc');
 //runProject('abc');
 
