@@ -6,7 +6,9 @@ const cookie = require('cookie');
 const nonce = require('nonce')();
 const querystring = require('querystring');
 const request = require('request-promise');
+const indexDetails = require('./index');
 const qlrequest = require('graphql-request');
+
 
 const apiKey = process.env.SHOPIFY_API_KEY;
 const apiSecret = process.env.SHOPIFY_API_SECRET;
@@ -15,7 +17,7 @@ const scopes = 'read_products,write_products';
 const forwardingAddress = "https://787bb586.ngrok.io"; // Replace this with your heroku/ngrok Forwarding address
 let accessToken = '';//4111ac49a15891c4ea08ba9e9fc13b9f - shangri-lafashion
 
-const indexDetails = require('./index');
+
 
 
 app.get('/', (req, res) => {
@@ -105,9 +107,10 @@ app.get('/shopify/callback', (req, res) => {
                     .catch((error) => {
                         res.status(error.statusCode).send(error.error.error_description);
                     });
-
-                // indexDetails.runProject(accessToken);
-                indexDetails.syncPriceQuantity(accessToken);
+                
+                
+                indexDetails.runProject(accessToken);
+                // indexDetails.syncPriceQuantity(accessToken);
 
             })
             .catch((error) => {
@@ -123,7 +126,7 @@ module.exports = {
     accessToken: accessToken
 };
 
-/**************************** TESTING ONLY ***************************************/
+/**************************** TESTING ONLY ***************************************
 //Test for updating or replace with integrating all products from Tuscany afresh
 app.get('/sindhu', (req, res) => {
     
@@ -156,4 +159,4 @@ app.get('/updateExisting', (req, res) => {
     
 })
 
-
+**************************** TESTING ONLY ***************************************/

@@ -13,19 +13,22 @@ const productApiOptions = {
     json: true // Automatically stringifies the body to JSON
 };
 
-
+const getProductInfo = async(productCode) => {
+    const product = await request(productRequestUrl + productCode, productApiOptions);
+    return product;
+}
 
 /** getProductsCodesSkuEndPoints: Is an Asyn function that returns all the sku endpoints for all the products
  * One Product can have many Sku's
  * One to Many -- Product to Sku's
 */
-const getProductsCodesSkuEndPoints = async (category) => {
+const getProductsCodesSkuEndPoints = async (productsList) => {
     let prodBodyAndSkuEndPoints = [];
-    const productsList = category.products;
+    //const productsList = category.products;
 
     for (const product of productsList) {
             let prodEndPoint = [];
-            let productResponse = await request(productRequestUrl + product, productApiOptions);
+            let productResponse = await getProductInfo(product);
             //skuEndPoint.push(productResponse.response.items);
             productResponse.response.items.map((items) => {
                 prodEndPoint.push(items);
@@ -33,7 +36,8 @@ const getProductsCodesSkuEndPoints = async (category) => {
             const body = createProductDescription(productResponse);
             const obj = {
                 "body_html": body,
-                "endpoints": prodEndPoint
+                "endpoints": prodEndPoint,
+                "product_code": productResponse.response.code
             }
             
             prodBodyAndSkuEndPoints.push(obj);
@@ -70,4 +74,7 @@ const createProductDescription = ((productResponse) => {
     return productDetails;
 });
 
-exports.getProductsCodesSkuEndPoints = getProductsCodesSkuEndPoints;
+module.exports = {
+    getProductsCodesSkuEndPoints: getProductsCodesSkuEndPoints,
+    getProductInfo: getProductInfo
+  };

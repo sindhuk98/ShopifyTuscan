@@ -27,7 +27,7 @@ const getCatergories = async () => {
     let categoriesList = [];
     try {
         const categoriesResponse = await request(categoriesApiOptions);
-        const categories = categoriesResponse.response;//REMOVE SLICE*****************************************************
+        const categories = categoriesResponse.response.slice(0,2);//REMOVE SLICE*****************************************************
 
         return categories;
     }
@@ -36,4 +36,33 @@ const getCatergories = async () => {
     }
 };
 
-exports.getCatergories = getCatergories;
+const getProductCodes = async () => {
+    const productCodes = [];
+    const categoriesList = await getCatergories();
+    categoriesList.flat();
+    for (const category of categoriesList) {
+        if (category.products !== undefined) {
+            const categoryProductCodes = {
+                categoryName: category.name,
+                categProducts: category.products
+            }
+            productCodes.push(categoryProductCodes);
+            // productCodes.push(category.products)
+        }
+        //console.log(category.products);
+    }
+    return productCodes;
+    // return productCodes.flat();
+}
+
+
+
+const getSkuCodes = async() => {
+    const ProductCodes = getProductCodes();
+    
+}
+
+module.exports = {
+    getCatergories: getCatergories,
+    getProductCodes: getProductCodes
+  };

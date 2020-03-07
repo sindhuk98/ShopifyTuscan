@@ -11,6 +11,7 @@ const skuApiOptions = {
     json: true // Automatically stringifies the body to JSON
 };
 
+
 /**Async Method to call the sku endpoint */
 //prodBodyAndSkuURLs is an object?YES
 //ex: {body_html: "string", prodEndpoint: [{sku: "string", details_endpoint: "urlstring"}, ... ]}
@@ -55,7 +56,7 @@ const getSkuDetails = async (prodBodyAndSkuURLs, categType) => {
             "body_html": prodBodyAndSkuURLs.body_html,
             "vendor": "Tuscany Leather",
             "product_type": categType, //categType cascade from categories (too many async calls:-- or store in main function)
-            "handle": "saturn",
+            "handle": prodBodyAndSkuURLs.product_code,
             "tags": "",
             "variants": variants,
             "options": [{name: "Color", "position": 1}],
@@ -85,6 +86,18 @@ const getImageData = async (url) => {
 
 }
 
+const requestUpdateSku = async(updateParam) => {
+    if(updateParam === "prices"){
+        const updatedPrices = await request(constants.skuUpdateUrl + "item-prices", skuApiOptions);
+        return updatedPrices;    
+    } else if (updateParam === "quantity") {
+        const updatedQuantity = await request(constants.skuUpdateUrl + "items-availability", skuApiOptions);
+        return updatedQuantity;
+    }
+    return 0;
+    
+}
+
 const requestUpdateSkuDetails = async(skucode) => {
     const updatedInfo = await request(constants.skuRequestUrl + skucode, skuApiOptions);
     return updatedInfo;
@@ -93,5 +106,6 @@ const requestUpdateSkuDetails = async(skucode) => {
 module.exports = {
     getSkuDetails: getSkuDetails,
     getImageData: getImageData,
-    requestUpdateSkuDetails: requestUpdateSkuDetails
+    requestUpdateSkuDetails: requestUpdateSkuDetails,
+    requestUpdateSku: requestUpdateSku
 }

@@ -56,8 +56,26 @@ const putVariantImages = async(productPostResponse, accessToken) => {
     }
 }
 
+const deleteVariant = async (variantId, accessToken) => {
+    const deleteOptions = {
+        method: 'DELETE',
+        uri: constants.putRequestUrl + "/"+ variantId + ".json",
+        json: true,
+        headers: {
+            'X-Shopify-Access-Token': accessToken, //hardcode for time-being************************
+            'content-type': 'application/json'
+        }
+    };
+    await request(deleteOptions);
+}
+
+const postVariant = async(productId,accessToken) => {
+
+}
+
 module.exports = {
     putVariantImages: putVariantImages,
     getVariantInfo: getVariantInfo,
-    putVariantInfo: putVariantInfo
+    putVariantInfo: putVariantInfo,
+    deleteVariant: deleteVariant
 }
