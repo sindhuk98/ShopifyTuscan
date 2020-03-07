@@ -1,7 +1,7 @@
 /**Add the Required NPM Modules */
 const request = require('request-promise');
 
-/**Add the Required App Modules */
+/** Include required files */
 const constants = require('./constants')
 
 /**SkuInfo Url Endpoint Definition */
@@ -11,59 +11,80 @@ const skuApiOptions = {
     json: true // Automatically stringifies the body to JSON
 };
 
+const skuDetails = async (sku) => {
+    const skuResponse = await request(constants.skuRequestUrl+sku, skuApiOptions);
+    return skuResponse;
+}
+
 
 /**Async Method to call the sku endpoint */
 //prodBodyAndSkuURLs is an object?YES
-//ex: {body_html: "string", prodEndpoint: [{sku: "string", details_endpoint: "urlstring"}, ... ]}
+//ex: {body_html: "string", prodEndpoint: [{sku: "string", details_endpoint: "urlstring"}, ... ], product_code: "string"}
 //FOR POSTING:
-const getSkuDetails = async (prodBodyAndSkuURLs, categType) => {
+const getSkuDetails = async (prodBodyAndSkuURLs, categName) => {
     /**Variants to hold the SKU Variants for Shopify */
     let variants = [];
     let images = [];
     let sku;
     for (const skuEndpoint of prodBodyAndSkuURLs.endpoints) {
-        sku = await request(skuEndpoint.details_endpoint, skuApiOptions);
-        variants.push(
-            {
-                "option1": sku.response.color,
-                "inventory_quantity": sku.response.available_quantity,
-                "sku": skuEndpoint.sku,
-                "price": sku.response.prices.list.default,
-                "inventory_policy": "continue",
-                "inventory_management": "shopify"
+        /**Get SKU info for each Sku endpoint of a product */
+        sku = await request(skuEndpoint.details_endpoint, skuApiOptions); // REVISIT: call skuDetails instead**********
+        /**Checks if sku is saleable */
+        if (sku.response.saleable){
+            /** Define a new variant object for each sku of a product */
+            variants.push(
+                {
+                    "option1": sku.response.color,
+                    "inventory_quantity": sku.response.available_quantity,
+                    "sku": skuEndpoint.sku,
+                    "price": sku.response.prices.list.default,
+                    "barcode": sku.response.ean,
+                    "inventory_policy": "continue",
+                    "inventory_management": "shopify"
+                }
+            );
+            /** ^^^ THIS IS NOT A PRODUCT YET */
+    
+    
+            /**Buffer the base64 data from the Main Image URL obtained from sku response */
+            let imageBufferData = await getImageData(sku.response.main_image.url);
+            if (imageBufferData === undefined) {
+                imageBufferData = "";
             }
-        );
-
-        /**Buffer the base64 data from the Main Image URL obtained from sku response */
-        let imageBufferData = await getImageData(sku.response.main_image.url);
-        if (imageBufferData === undefined) {
-            imageBufferData = "";
+            console.log(sku.response.main_image.url,sku.response.name);
+            images.push(
+                {
+                    "attachment": imageBufferData,
+                    "filename": "test.jpg"
+                }
+            )
         }
-        console.log(sku.response.main_image.url,sku.response.name);
-        images.push(
-            {
-                "attachment": imageBufferData,
-                "filename": "test.jpg"
-            }
-        )
+        
 
     }
 
-    /**Create the shopify products and Return it */
-    const shopifyProduct = {
-        "product": {
-            "title": sku.response.name,
-            "body_html": prodBodyAndSkuURLs.body_html,
-            "vendor": "Tuscany Leather",
-            "product_type": categType, //categType cascade from categories (too many async calls:-- or store in main function)
-            "handle": prodBodyAndSkuURLs.product_code,
-            "tags": "",
-            "variants": variants,
-            "options": [{name: "Color", "position": 1}],
-            "images": images
+    if (variants[0] !== undefined) {
+        /**Create the Shopify Product to be posted and Return it */
+        const shopifyProduct = {
+            "product": {
+                "title": sku.response.name,
+                "body_html": prodBodyAndSkuURLs.body_html,
+                "vendor": "Tuscany Leather",
+                "product_type": categName, //categName cascade from categories (too many async calls:-- or store in main function)
+                "handle": prodBodyAndSkuURLs.product_code, //replace with product(param)
+                "tags": "",
+                "variants": variants,
+                "options": [{name: "Color", "position": 1}],
+                "images": images
+            }
         }
+        return shopifyProduct;
+
+    } else {
+        return undefined;
     }
-    return shopifyProduct;
+    
+    
 }
 
 
@@ -86,26 +107,21 @@ const getImageData = async (url) => {
 
 }
 
-const requestUpdateSku = async(updateParam) => {
+const skuUpdateDetails = async(updateParam) => {
     if(updateParam === "prices"){
-        const updatedPrices = await request(constants.skuUpdateUrl + "item-prices", skuApiOptions);
+        const updatedPrices = await request(constants.requestUrl + "item-prices", skuApiOptions);
         return updatedPrices;    
     } else if (updateParam === "quantity") {
-        const updatedQuantity = await request(constants.skuUpdateUrl + "items-availability", skuApiOptions);
+        const updatedQuantity = await request(constants.requestUrl + "items-availability", skuApiOptions);
         return updatedQuantity;
     }
     return 0;
     
 }
 
-const requestUpdateSkuDetails = async(skucode) => {
-    const updatedInfo = await request(constants.skuRequestUrl + skucode, skuApiOptions);
-    return updatedInfo;
-}
-
 module.exports = {
     getSkuDetails: getSkuDetails,
     getImageData: getImageData,
-    requestUpdateSkuDetails: requestUpdateSkuDetails,
-    requestUpdateSku: requestUpdateSku
+    skuUpdateDetails: skuUpdateDetails,
+    skuDetails: skuDetails
 }

@@ -1,133 +1,135 @@
 const productsMod = require('./Tuscan/products');
 const categoriesMod = require('./Tuscan/categories');
 const skusMod = require('./Tuscan/sku');
-const postShopifyMod = require('./Shopify/product');
+const productsShopifyMod = require('./Shopify/product');
 const putShopifyMod = require('./Shopify/variantImages');
 const putInventoryMod = require('./Shopify/Inventory');
-const cron = require("node-cron");
+
 
 
 const syncProducts = async (accessToken) => {
+    console.log("inside syncProducts");
+
+    /**Get Shopify Store Product id, Handle=ProductCodes and Variants ex: {products: [{id: 1234xxx, handle: TL1234, variants: [...]}],...]}*/
     const productHandleVariants = await putShopifyMod.getVariantInfo(accessToken);
-    
+
+    /** Get handles(productCodes: ex: [TL141911,...]) from  productHandleVariants into an array*/
+    const handles = productHandleVariants.products.map((id) => { return id.handle.toUpperCase(); });
+
     /** UPDATE PRODUCTS */
-    const tuscCategAndCodes = await categoriesMod.getProductCodes();
-    const handles = productHandleVariants.products.map( (id) => { return id.handle.toUpperCase(); });
-    let TuscIds = tuscCategAndCodes.map((categAndCode) => {return categAndCode.categProducts});
-    TuscIds = TuscIds.flat();
-    console.log(handles);
-    for(idVariants of productHandleVariants.products) {
-        if (!TuscIds.includes(idVariants.handle.toUpperCase())) {
-            await postShopifyMod.deleteProds(idVariants.id, accessToken);
+
+    /**Get the Category Name and Product Codes ex: [{categoryName: "Leather Bag", categoryProducts: [TL141911, TL14188,...]}, ...]*/
+    const categNameAndProdCodes = await categoriesMod.getProductCodes();
+
+
+    /** Get tuscanProdCodes(productIds: ex: [[TL141911,...], ...]) for each category from  productHandleVariants into a nested array  */
+    let tuscanProdCodesUnfiltered = categNameAndProdCodes.map((categAndCode) => { return categAndCode.categProducts });
+
+    /** Flattening tuscanProdCodes ex: [TL141911,...]*/
+    tuscanProdCodesUnfiltered = tuscanProdCodesUnfiltered.flat();
+    let tuscanProdCodes = [];
+
+    for (code of tuscanProdCodesUnfiltered) {
+        const prodInfo = await productsMod.getProductsCodesSkuEndPoints(code);
+        const sku = prodInfo.endpoints[0].sku;
+        const skuResponse = await skusMod.skuDetails(sku);
+        if (skuResponse.response.saleable) {
+            if (!tuscanProdCodes.includes(code)) {
+                tuscanProdCodes.push(code);
+            }
+        }
+    };
+    console.log(tuscanProdCodes);
+
+    // console.log(handles);
+
+
+    for (idVariants of productHandleVariants.products) {
+        /**If Shopify Product does not exist in Tuscan Store Delete it from Shopify Store */
+        if (!tuscanProdCodes.includes(idVariants.handle.toUpperCase())) {
+            await productsShopifyMod.deleteProds(idVariants.id, accessToken);
+
             console.log("product " + idVariants.handle + " deleted")
         }
     }
-    for (id of TuscIds){
-        let category = '';
-        for (categAndCode of tuscCategAndCodes) {
-            if (categAndCode.categProducts.includes(id)) {
-                category = categAndCode.categoryName;
+
+    for (prodCode of tuscanProdCodes) {
+
+        /**Get the CategoryName for the given ProdCode */
+        let categoryName = '';
+        for (categAndCode of categNameAndProdCodes) {
+            if (categAndCode.categProducts.includes(prodCode)) {
+                categoryName = categAndCode.categoryName;
             }
         }//replace with filter??
-        console.log(id);
-        if (!handles.includes(id)){
-            const newSkuEndpoints = await productsMod.getProductsCodesSkuEndPoints([id]);
-            console.log(newSkuEndpoints[0]);
-            const shopifyProduct = await skusMod.getSkuDetails(newSkuEndpoints[0], category);
+
+        /**If Tuscany Product does not exist in Shopify Store Add it to Shopify Store */
+        if (!handles.includes(prodCode)) {
+            /** */
+            const newSkuEndpoints = await productsMod.getProductsCodesSkuEndPoints(prodCode);
+            // console.log(newSkuEndpoints);
+
+            const shopifyProduct = await skusMod.getSkuDetails(newSkuEndpoints, categoryName);
+
+            if (shopifyProduct !== undefined) {
                 console.log("POSTING:");
                 // console.log(shopifyProduct);
-                const res = await postShopifyMod.postProds(shopifyProduct, accessToken);
-                await putShopifyMod.putVariantImages(res, accessToken);
-            console.log("product " + id + " added")
+                const shopifyProdResponse = await productsShopifyMod.postProds(shopifyProduct, accessToken);
+                putShopifyMod.putVariantImages(shopifyProdResponse, accessToken);
+                console.log("product " + prodCode + " added")
+            }
         }
     }
-    
-
+    console.log("ended");
 }
-syncProducts('8f8fe618383fb36975c4ae278c6016ae');
-
-// const deleteOptions = {
-//     method: 'DELETE',
-//     uri: 'https://tuscstore.myshopify.com/admin/api/2020-01/products/4713841262637.json',
-//     json: true,
-//     headers: {
-//         'X-Shopify-Access-Token': '8f8fe618383fb36975c4ae278c6016ae', 
-//         'content-type': 'application/json'
-//     }
-// };
+// syncProducts('5476a5ad3e982a661cdad119bc775479');
 
 
-
-// request.delete(deleteOptions)
-// .then((res)=>{
-//     console.log("deleted variant");
-// })
-
-
-
+/**takes parameters accessToken and param: "prices","quantity" */
 const syncPriceQuantity = async (accessToken, param) => {
     console.log("syncPriceQuantity");
+
+    /**productVariants has product id, handle, variants */
     const productVariants = await putShopifyMod.getVariantInfo(accessToken);
-    const SkuDetails = await skusMod.requestUpdateSku(param);
+
+    /** SkuDetails is a list of skus and param*/
+    const skuDetails = await skusMod.skuUpdateDetails(param);
+
+
     for (variants of productVariants.products) {
         for (variant of variants.variants) {
+            console.log(variant.sku);
             if (param === "prices") {
-                TuscPrices = SkuDetails.response;
-                const found = TuscPrices.find(element => element.sku === variant.sku);
-                const price = found.prices.list.default;
-                if (price !== variant.price) {
-                    console.log("price changed")
-                    await putShopifyMod.putVariantInfo(accessToken, price);
+                const tuscSkusAndPrices = skuDetails.response;
+                const updatedSkuPrice = tuscSkusAndPrices.find(skuAndPrice => skuAndPrice.sku === variant.sku);
+                if (updatedSkuPrice !== undefined) {
+                    const updatedPrice = updatedSkuPrice.prices.list.default;
+                    if (updatedPrice !== variant.price) {
+                        console.log("price changed")
+                        await putShopifyMod.putVariantInfo(accessToken, updatedPrice);
+                    }
+                    console.log(variant.sku + "Tuscany price: " + updatedPrice + "Shopify price: " + variant.price);
                 }
-                console.log(variant.sku + "Tuscany price: " + price + "Shopify price: " + variant.price);
+                
             } else if (param === "quantity") {
-                TuscQuantity = SkuDetails.items;
-                const quantity = TuscQuantity[variant.sku];
-                if (quantity !== variant.inventory_quantity) {
-                    console.log("quantity changed")
-                    await putInventoryMod.putInventoryInfo(accessToken, variant.inventory_item_id, quantity);
+                const tuscSkuAndQuantity = skuDetails.items;
+                const updatedQuantity = tuscSkuAndQuantity[variant.sku];
+                if (updatedQuantity !== undefined && updatedQuantity !== variant.inventory_quantity) {
+                    console.log("quantity changed" + variant.inventory_item_id + updatedQuantity);
+                    await putInventoryMod.putInventoryInfo(accessToken, variant.inventory_item_id, updatedQuantity);
                 }
-                console.log(variant.sku + "Tuscany quantity: " + quantity + " Shopify quantity: " + variant.inventory_quantity);
+                console.log(variant.sku + "Tuscany quantity: " + updatedQuantity + " Shopify quantity: " + variant.inventory_quantity);
             }
         }
     }
 }
-// syncPriceQuantity('8f8fe618383fb36975c4ae278c6016ae',"prices");
-// syncPriceQuantity('8f8fe618383fb36975c4ae278c6016ae',"quantity");
+// syncPriceQuantity('5476a5ad3e982a661cdad119bc775479',"prices");
+// syncPriceQuantity('5476a5ad3e982a661cdad119bc775479',"quantity");
 
-
-
-const runProject = async (accessToken) => {
-    const categories = await categoriesMod.getCatergories();
-    for (const category of categories) {
-        if (category.products !== undefined) {
-            const prodBodyAndSkuEndPoints = await productsMod.getProductsCodesSkuEndPoints(category.products);
-            for (const varEndPoints of prodBodyAndSkuEndPoints) {
-                const shopifyProduct = await skusMod.getSkuDetails(varEndPoints, category.name);
-                console.log("POSTING:");
-                // console.log(shopifyProduct);
-                const res = await postShopifyMod.postProds(shopifyProduct, accessToken);
-                await putShopifyMod.putVariantImages(res, accessToken);
-            }
-        }
-
-    }
-    const task1 = cron.schedule("0 0,6,15,20 * * *", syncPriceQuantity(accessToken,"prices"),{
-        scheduled: false,
-        timezone: "America/New_York"
-    });
-    const task2 = cron.schedule("0 * * * *", syncPriceQuantity(accessToken,"quantity"),{
-        scheduled: false,
-        timezone: "America/New_York"
-    });
-    task1.start();
-    task2.start();
-};
-
-
-//runProject('abc');
 
 module.exports = {
-    runProject: runProject,
+    syncProducts: syncProducts,
     syncPriceQuantity: syncPriceQuantity
 }
+
+//CANNOT INSTALL/RUN APP AT 12:00AM

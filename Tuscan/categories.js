@@ -1,7 +1,7 @@
 /**Add the Required NPM Modules */
 const request = require('request-promise');
 
-/**Add the Required App Modules */
+/** Include required files */
 const constants = require('./constants')
 /*Get Tuscan API Categories */
 /**Integrate TuscanLeather Products to Shopify Store-ShangrilaFashion.
@@ -24,10 +24,9 @@ let categoriesApiOptions = {
 
 /**Async function to call the categories API Using the request promise package. */
 const getCatergories = async () => {
-    let categoriesList = [];
     try {
         const categoriesResponse = await request(categoriesApiOptions);
-        const categories = categoriesResponse.response.slice(0,2);//REMOVE SLICE*****************************************************
+        const categories = categoriesResponse.response.slice(0,1);//REMOVE SLICE*****************************************************
 
         return categories;
     }
@@ -49,17 +48,9 @@ const getProductCodes = async () => {
             productCodes.push(categoryProductCodes);
             // productCodes.push(category.products)
         }
-        //console.log(category.products);
     }
     return productCodes;
     // return productCodes.flat();
-}
-
-
-
-const getSkuCodes = async() => {
-    const ProductCodes = getProductCodes();
-    
 }
 
 module.exports = {

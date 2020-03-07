@@ -9,7 +9,7 @@ const putInventoryInfo = async(accessToken,item_id, quantity) => { //40457961517
         "available": quantity
       };
       const putOptions = {
-        method: 'PUT',
+        method: 'POST',
         uri: constants.putInventoryUrl,
         json: true,
         headers: {

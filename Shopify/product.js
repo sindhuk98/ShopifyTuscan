@@ -6,7 +6,7 @@ const constants = require('./constants')
 const deleteProds = async(productCode, accessToken) => {
     const deleteOptions = {
         method: 'DELETE',
-        uri: constants.postRequestUrl + "/"+ productCode + ".json",
+        uri: constants.prodRequestUrl + "/"+ productCode + ".json",
         json: true,
         headers: {
             'X-Shopify-Access-Token': accessToken, //hardcode for time-being************************
@@ -21,7 +21,7 @@ const deleteProds = async(productCode, accessToken) => {
 const postProds = async (new_product, accessToken) => {
     const postOptions = {
         method: 'POST',
-        uri: constants.postRequestUrl + ".json",
+        uri: constants.prodRequestUrl + ".json",
         json: true,
         headers: {
             'X-Shopify-Access-Token': accessToken, //hardcode for time-being************************

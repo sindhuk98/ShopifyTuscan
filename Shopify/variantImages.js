@@ -1,8 +1,9 @@
 const request = require('request-promise');
 const constants = require('./constants');
 
+
 const getVariantInfo = async(accessToken) => {
-    const productVariantInfo = await request.get(constants.getShopifyUrl, { headers: { 'X-Shopify-Access-Token': accessToken }, json: true });
+    const productVariantInfo = await request.get(constants.getProductFieldsUrl, { headers: { 'X-Shopify-Access-Token': accessToken }, json: true });
     return productVariantInfo;
 }
 
@@ -15,7 +16,7 @@ const putVariantInfo = async (accessToken,price) => {
     console.log("id: " + variant.id);  
     const putOptions = {
         method: 'PUT',
-        uri: constants.putRequestUrl + variant.id + ".json",
+        uri: constants.variantRequestUrl + variant.id + ".json",
         json: true,
         headers: {
             'X-Shopify-Access-Token': accessToken, //hardcode for time-being************************
@@ -27,7 +28,7 @@ const putVariantInfo = async (accessToken,price) => {
 }
 
 
-const putVariantImages = async(productPostResponse, accessToken) => {
+const putVariantImages = (productPostResponse, accessToken) => {
     let idx = 0;
     for (variant of productPostResponse.product.variants) {
         if (productPostResponse.product.images[idx] !== undefined) {
@@ -42,7 +43,7 @@ const putVariantImages = async(productPostResponse, accessToken) => {
             }
             const putOptions = {
                 method: 'PUT',
-                uri: constants.putRequestUrl + variant.id + ".json",
+                uri: constants.variantRequestUrl + variant.id + ".json",
                 json: true,
                 headers: {
                     'X-Shopify-Access-Token': accessToken, //hardcode for time-being************************
@@ -50,7 +51,7 @@ const putVariantImages = async(productPostResponse, accessToken) => {
                 },
                 body: new_image
             };
-            await request(putOptions);
+            request(putOptions);
             idx++;
         }
     }
@@ -59,7 +60,7 @@ const putVariantImages = async(productPostResponse, accessToken) => {
 const deleteVariant = async (variantId, accessToken) => {
     const deleteOptions = {
         method: 'DELETE',
-        uri: constants.putRequestUrl + "/"+ variantId + ".json",
+        uri: constants.variantRequestUrl + "/"+ variantId + ".json",
         json: true,
         headers: {
             'X-Shopify-Access-Token': accessToken, //hardcode for time-being************************

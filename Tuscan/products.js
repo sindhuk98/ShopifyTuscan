@@ -1,9 +1,8 @@
 /**Add the Required NPM Modules */
 const request = require('request-promise');
 
-/**Add the Required App Modules */
+/** Include required files */
 const constants = require('./constants')
-const categories = require('./categories');
 
 /**Prodcuinfo Url Endpoint Definition */
 let productRequestUrl = constants.requestUrl + 'product-info?code='
@@ -22,27 +21,21 @@ const getProductInfo = async(productCode) => {
  * One Product can have many Sku's
  * One to Many -- Product to Sku's
 */
-const getProductsCodesSkuEndPoints = async (productsList) => {
-    let prodBodyAndSkuEndPoints = [];
-    //const productsList = category.products;
+const getProductsCodesSkuEndPoints = async (product) => {
 
-    for (const product of productsList) {
-            let prodEndPoint = [];
             let productResponse = await getProductInfo(product);
             //skuEndPoint.push(productResponse.response.items);
-            productResponse.response.items.map((items) => {
-                prodEndPoint.push(items);
-            });
-            const body = createProductDescription(productResponse);
-            const obj = {
-                "body_html": body,
-                "endpoints": prodEndPoint,
-                "product_code": productResponse.response.code
-            }
-            
-            prodBodyAndSkuEndPoints.push(obj);
-    }
 
+            /**pushing prodEndPoint: [{sku: 1911_1, details_endpoint: sku_url}, ...]*/
+            const prodSkusEndPoints = productResponse.response.items;
+            
+            const body = createProductDescription(productResponse);
+            
+            const prodBodyAndSkuEndPoints = {
+                "body_html": body,
+                "endpoints": prodSkusEndPoints,
+                "product_code": productResponse.response.code //remove product_code because product(param)****************************
+            }
     return prodBodyAndSkuEndPoints;
 }
 

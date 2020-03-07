@@ -6,15 +6,16 @@ const cookie = require('cookie');
 const nonce = require('nonce')();
 const querystring = require('querystring');
 const request = require('request-promise');
-const indexDetails = require('./index');
-const qlrequest = require('graphql-request');
+const cron = require("node-cron");
 
+/** Include required files */
+const indexDetails = require('./index');
 
 const apiKey = process.env.SHOPIFY_API_KEY;
 const apiSecret = process.env.SHOPIFY_API_SECRET;
 const port = process.env.PORT || 3000;
-const scopes = 'read_products,write_products';
-const forwardingAddress = "https://787bb586.ngrok.io"; // Replace this with your heroku/ngrok Forwarding address
+const scopes = 'read_products,write_products,write_inventory';
+const forwardingAddress = "https://09a40b39.ngrok.io"; // Replace this with your heroku/ngrok Forwarding address
 let accessToken = '';//4111ac49a15891c4ea08ba9e9fc13b9f - shangri-lafashion
 
 
@@ -41,7 +42,7 @@ app.get('/shopify', (req, res) => {
             '&redirect_uri=' + redirectUri;
 
         res.cookie('state', state);
-        res.redirect(installUrl);
+        res.redirect(installUrl); // remove line*****************************
     } else {
         return res.status(400).send('Missing shop parameter. Please add ?shop=your-development-shop.myshopify.com to your request');
     }
@@ -91,7 +92,7 @@ app.get('/shopify/callback', (req, res) => {
         };
 
         request.post(accessTokenRequestUrl, { json: accessTokenPayload })
-            .then((accessTokenResponse) => {
+            .then(async (accessTokenResponse) => {
                 accessToken = accessTokenResponse.access_token;
                 console.log(accessToken);
                 const shopRequestUrl = 'https://' + shop + '/admin/api/2020-01/shop.json';
@@ -109,11 +110,28 @@ app.get('/shopify/callback', (req, res) => {
                     });
                 
                 
-                indexDetails.runProject(accessToken);
+                await indexDetails.syncProducts(accessToken);
                 // indexDetails.syncPriceQuantity(accessToken);
+                //"0 0,6,15,20 * * *"
+                const syncPrices = cron.schedule("0 0,6,15,20 * * *", async () => {await indexDetails.syncPriceQuantity(accessToken, "prices");} , {
+                    scheduled: true,
+                    timezone: "America/New_York"
+                });
+                const syncQuantities = cron.schedule("0 * * * *", async () => {await indexDetails.syncPriceQuantity(accessToken, "quantity");}, {
+                    scheduled: true,
+                    timezone: "America/New_York"
+                });
+                const syncProducts = cron.schedule("0 0 * * *", async () => {await indexDetails.syncProducts(accessToken);}, {
+                    scheduled: true,
+                    timezone: "America/New_York"
+                });
+                syncPrices.start();
+                syncQuantities.start();
+                syncProducts.start();
 
             })
             .catch((error) => {
+                console.log("err");
                 res.status(error.statusCode).send(error.error.error_description);
             });
     } else {
@@ -126,37 +144,3 @@ module.exports = {
     accessToken: accessToken
 };
 
-/**************************** TESTING ONLY ***************************************
-//Test for updating or replace with integrating all products from Tuscany afresh
-app.get('/sindhu', (req, res) => {
-    
-    qlRequestUrl = 'https://tuscstore.myshopify.com/admin/api/2020-01/graphql.json';
-    const query = `{
-  products(first:50) {
-    edges {
-      node {
-        title
-        variants(first:1){
-            edges{
-                node{
-                    sku
-                    price
-                }
-            }
-        }
-      }
-    }
-  }
-}`
-
-    const client = new qlrequest.GraphQLClient(qlRequestUrl, { headers: {'X-Shopify-Access-Token': 'f510b0c596adce9e611503dfbcb11faa'} });
-    client.request(query).then(data => console.log(JSON.stringify(data)));
-    res.send('Congrats Sindhu!');
-});
-
-app.get('/updateExisting', (req, res) => {
-   
-    
-})
-
-**************************** TESTING ONLY ***************************************/
