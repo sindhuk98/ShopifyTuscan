@@ -63,7 +63,7 @@ const putVariantImages = (productPostResponse, accessToken) => {
 }
 
 
-const deleteVariant = async (variantId, accessToken) => {
+const deleteVariant = async (variantId, imageId, productId,accessToken) => {
     const deleteOptions = {
         method: 'DELETE',
         uri: constants.variantRequestUrl + "/"+ variantId + ".json",
@@ -73,7 +73,21 @@ const deleteVariant = async (variantId, accessToken) => {
             'content-type': 'application/json'
         }
     };
+    await deleteVariantImage(imageId, productId, accessToken);
     await request(deleteOptions);
+}
+
+const deleteVariantImage = async (imageId,productId,accessToken) => {
+    const deleteImageOptions = {
+        method: 'DELETE',
+        uri: constants.prodRequestUrl + "/"+ productId + "/images/" + imageId + ".json",
+        json: true,
+        headers: {
+            'X-Shopify-Access-Token': accessToken,
+            'content-type': 'application/json'
+        }
+    };
+    await request(deleteImageOptions);
 }
 
 const postVariantImage = async (accessToken, productId, new_image) => {

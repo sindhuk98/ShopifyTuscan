@@ -8,13 +8,41 @@ const getProductFieldInfo = async(accessToken) => {
     return productIdHandleVariants;
 }
 
+const getProductTags = async(accessToken,productId) => {
+    const getOptions = {
+        method: 'GET',
+        uri: constants.prodRequestUrl + "/"+ productId + ".json?vendor=Tuscany%20Leather&fields=tags",
+        json: true,
+        headers: {
+            'X-Shopify-Access-Token': accessToken,
+            'content-type': 'application/json'
+        }
+    };
+    const productTags = await request(getOptions);
+    return productTags.product;
+}
+
+const putProductInfo = async(accessToken,productId,updated_product) => {
+    const putOptions = {
+        method: 'PUT',
+        uri: constants.prodRequestUrl + "/"+ productId + ".json",
+        json: true,
+        headers: {
+            'X-Shopify-Access-Token': accessToken,
+            'content-type': 'application/json'
+        },
+        body: updated_product
+    };
+    await request(putOptions);
+}
+
 const deleteProds = async(productCode, accessToken) => {
     const deleteOptions = {
         method: 'DELETE',
         uri: constants.prodRequestUrl + "/"+ productCode + ".json",
         json: true,
         headers: {
-            'X-Shopify-Access-Token': accessToken, //hardcode for time-being************************
+            'X-Shopify-Access-Token': accessToken,
             'content-type': 'application/json'
         }
     };
@@ -40,5 +68,7 @@ const postProds = async (new_product, accessToken) => {
    module.exports = {
     postProds: postProds,
     deleteProds: deleteProds,
-    getProductFieldInfo: getProductFieldInfo
+    getProductFieldInfo: getProductFieldInfo,
+    getProductTags: getProductTags,
+    putProductInfo: putProductInfo
 }

@@ -15,13 +15,18 @@ const syncProducts = async (accessToken) => {
     /** Get handles(productCodes: ex: [TL141911,...]) from  productHandleVariants into an array*/
     const handles = productHandleVariants.products.map((id) => { return id.handle.toUpperCase(); });
     let shopifyIdSkus = productHandleVariants.products.map((product) => { 
-        const prodSkus = product.variants.map((variant) => {return variant.sku});
+        const prodSkus = product.variants.map((variant) => {
+            return {
+            variantId: variant.id,
+            variantImageId: variant.image_id,
+            variantSku: variant.sku
+        }
+    });
         return {
             productId: product.id,
             productSkus: prodSkus
         }
     });
-
     /**Get the Category Name and Product Codes ex: [{categoryName: "Leather Bag", categoryProducts: [TL141911, TL14188,...]}, ...]*/
     const categNameAndProdCodes = await categoriesMod.getProductCodes();
 
@@ -64,6 +69,7 @@ const syncProducts = async (accessToken) => {
     };
     // console.log(tuscanProdCodes);
     // console.log(handles);
+    // console.log(unsaleableSkuCodes);
 
     /** DELETING A PRODUCT */
     for (idVariants of productHandleVariants.products) { //replace for loop condition to handles?
@@ -102,19 +108,34 @@ const syncProducts = async (accessToken) => {
         }
     }
 
-   /** DELETIONG AN INACTIVE VARIANT/SKU */
+   /** DELETING AN INACTIVE VARIANT/SKU */
     for (product of shopifyIdSkus) {
         /**If Shopify Product does not exist in Tuscan Store Delete it from Shopify Store */
         for (shopifySku of product.productSkus){
-            if (unsaleableSkuCodes.includes(shopifySku)) {
-                await putShopifyMod.deleteVariant(product.productId, accessToken);
-                console.log("sku " + shopifySku + " deleted")
+            if (unsaleableSkuCodes.includes(shopifySku.variantSku)) {
+                console.log("unsaleableSku: " + shopifySku.variantSku);
+                await putShopifyMod.deleteVariant(shopifySku.variantId,shopifySku.variantImageId, product.productId, accessToken);
+                console.log("sku " + shopifySku.variantSku + " deleted")
+                const skuResponse = await skusMod.skuDetails(shopifySku.variantSku);
+                const tagsObject = await productsShopifyMod.getProductTags(accessToken,product.productId);
+                const new_tags = tagsObject.tags.replace(skuResponse.response.color, "");
+                const updated_product  = {
+                    product: {
+                        id: product.productId,
+                        tags: new_tags
+                    }
+                };
+                await productsShopifyMod.putProductInfo(accessToken,product.productId,updated_product);
             }
         } 
     }
 
     /** ADDING A NEW(ACTIVE) VARIANT/SKU */
-    let shopifySkuCodes = shopifyIdSkus.map((idSku) => {return idSku.productSkus });
+    let shopifySkuCodes = shopifyIdSkus.map((idSku) => {
+        const prodSkus = idSku.productSkus.map((productSku) => {return productSku.variantSku});
+        return prodSkus; 
+    });
+    console.log("shopifySkuCodes: " +shopifySkuCodes);
     shopifySkuCodes = shopifySkuCodes.flat();
     for (saleableProd of saleableSkuCodes) {
         for (activeSkuCode of saleableProd.activeSkus) {
@@ -143,6 +164,17 @@ const syncProducts = async (accessToken) => {
                     }
                 }
                 await putShopifyMod.postVariantImage(accessToken,shopifyIdSkuObj[0].id,postImageToVariant);
+
+                /**Updating the product tags */
+                const tagsObject = await productsShopifyMod.getProductTags(accessToken,shopifyIdSkuObj[0].id);
+                const updated_product  = {
+                    product: {
+                        id: shopifyIdSkuObj[0].id,
+                        tags: tagsObject.tags + "," + skuResponse.response.color
+                    }
+                };
+                await productsShopifyMod.putProductInfo(accessToken,shopifyIdSkuObj[0].id,updated_product);
+
             }
         }
     }
