@@ -10,23 +10,11 @@ const syncProducts = async (accessToken) => {
     console.log("inside syncProducts");
 
     /**Get Shopify Store Product id, Handle=ProductCodes and Variants ex: {products: [{id: 1234xxx, handle: TL1234, variants: [...]}],...]}*/
-    const productHandleVariants = await productsShopifyMod.getProductFieldInfo(accessToken);
+    let productHandleVariants = await productsShopifyMod.getProductFieldInfo(accessToken);
 
     /** Get handles(productCodes: ex: [TL141911,...]) from  productHandleVariants into an array*/
     const handles = productHandleVariants.products.map((id) => { return id.handle.toUpperCase(); });
-    let shopifyIdSkus = productHandleVariants.products.map((product) => { 
-        const prodSkus = product.variants.map((variant) => {
-            return {
-            variantId: variant.id,
-            variantImageId: variant.image_id,
-            variantSku: variant.sku
-        }
-    });
-        return {
-            productId: product.id,
-            productSkus: prodSkus
-        }
-    });
+
     /**Get the Category Name and Product Codes ex: [{categoryName: "Leather Bag", categoryProducts: [TL141911, TL14188,...]}, ...]*/
     const categNameAndProdCodes = await categoriesMod.getProductCodes();
 
@@ -39,6 +27,7 @@ const syncProducts = async (accessToken) => {
     let tuscanProdCodes = [];
     let unsaleableSkuCodes = []; //unsaleable skus of saleable products
     let saleableSkuCodes = [];
+
     /** collect all saleable and unsaleable skus of Tuscany by looking at the "saleable" key for each sku */
     for (code of tuscanProdCodesUnfiltered) {
         const prodInfo = await productsMod.getProductsCodesSkuEndPoints(code);
@@ -72,12 +61,12 @@ const syncProducts = async (accessToken) => {
     // console.log(unsaleableSkuCodes);
 
     /** DELETING A PRODUCT */
-    for (idVariants of productHandleVariants.products) { //replace for loop condition to handles?
+    for (handle of handles) {
         /**If Shopify Product does not exist in Tuscan Store Delete it from Shopify Store */
-        if (!tuscanProdCodes.includes(idVariants.handle.toUpperCase())) {
-            await productsShopifyMod.deleteProds(idVariants.id, accessToken);
-
-            console.log("product " + idVariants.handle + " deleted")
+        if (!tuscanProdCodes.includes(handle)) {
+            const prodIdHandle = productHandleVariants.products.filter((prodIdHandle) => {return prodIdHandle.handle.toUpperCase() === handle});
+            await productsShopifyMod.deleteProds(prodIdHandle[0].id, accessToken);
+            console.log("product " + handle + " deleted")
         }
     }
 
@@ -89,8 +78,9 @@ const syncProducts = async (accessToken) => {
         for (categAndCode of categNameAndProdCodes) {
             if (categAndCode.categProducts.includes(prodCode)) {
                 categoryName = categAndCode.categoryName;
+                break;
             }
-        }//replace with filter??
+        }//Used break - must improve efficiency
 
         /**If Tuscany Product does not exist in Shopify Store Add it to Shopify Store */
         if (!handles.includes(prodCode)) {
@@ -98,7 +88,7 @@ const syncProducts = async (accessToken) => {
             const newSkuEndpoints = await productsMod.getProductsCodesSkuEndPoints(prodCode);
             const shopifyProduct = await skusMod.getShopifyProduct(newSkuEndpoints, categoryName);
 
-            if (shopifyProduct !== undefined) {
+            if (shopifyProduct !== undefined) {//Remove as last step and test*******************************
                 console.log("POSTING:");
                 // console.log(shopifyProduct);
                 const shopifyProdResponse = await productsShopifyMod.postProds(shopifyProduct, accessToken);
@@ -107,6 +97,23 @@ const syncProducts = async (accessToken) => {
             }
         }
     }
+
+
+/**This is used for Adding and Deleting Variants */
+    productHandleVariants = await productsShopifyMod.getProductFieldInfo(accessToken);
+    let shopifyIdSkus = productHandleVariants.products.map((product) => { 
+        const prodSkus = product.variants.map((variant) => {
+            return {
+            variantId: variant.id,
+            variantImageId: variant.image_id,
+            variantSku: variant.sku
+        }
+    });
+        return {
+            productId: product.id,
+            productSkus: prodSkus
+        }
+    });
 
    /** DELETING AN INACTIVE VARIANT/SKU */
     for (product of shopifyIdSkus) {
@@ -135,7 +142,7 @@ const syncProducts = async (accessToken) => {
         const prodSkus = idSku.productSkus.map((productSku) => {return productSku.variantSku});
         return prodSkus; 
     });
-    console.log("shopifySkuCodes: " +shopifySkuCodes);
+    // console.log("shopifySkuCodes: " +shopifySkuCodes);
     shopifySkuCodes = shopifySkuCodes.flat();
     for (saleableProd of saleableSkuCodes) {
         for (activeSkuCode of saleableProd.activeSkus) {
@@ -181,10 +188,6 @@ const syncProducts = async (accessToken) => {
     console.log("ended");
 }
 syncProducts('5476a5ad3e982a661cdad119bc775479');
-
-
-
-
 
 
 

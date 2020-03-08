@@ -48,7 +48,9 @@ const getShopifyProduct = async (prodBodyAndSkuURLs, categName) => {
             tags.push(sku.response.color);
 
             /** Create a new variant object and push into variants[] for each sku of a product */
-            variants.push(createNewVariant(sku,skuEndpoint.sku));
+            let new_variant = createNewVariant(sku,skuEndpoint.sku);
+            new_variant["inventory_quantity"] = sku.response.available_quantity;
+            variants.push(new_variant);
 
             /**Buffer the base64 data from the Main Image URL obtained from sku response */
             console.log(sku.response.main_image.url, sku.response.name);
