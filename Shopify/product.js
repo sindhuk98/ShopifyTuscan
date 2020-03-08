@@ -3,6 +3,11 @@ const request = require('request-promise');
 
 const constants = require('./constants')
 
+const getProductFieldInfo = async(accessToken) => {
+    const productIdHandleVariants = await request.get(constants.getProductFieldsUrl, { headers: { 'X-Shopify-Access-Token': accessToken }, json: true });
+    return productIdHandleVariants;
+}
+
 const deleteProds = async(productCode, accessToken) => {
     const deleteOptions = {
         method: 'DELETE',
@@ -34,5 +39,6 @@ const postProds = async (new_product, accessToken) => {
 
    module.exports = {
     postProds: postProds,
-    deleteProds: deleteProds
+    deleteProds: deleteProds,
+    getProductFieldInfo: getProductFieldInfo
 }

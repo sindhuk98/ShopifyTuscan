@@ -18,9 +18,6 @@ const scopes = 'read_products,write_products,write_inventory';
 const forwardingAddress = "https://09a40b39.ngrok.io"; // Replace this with your heroku/ngrok Forwarding address
 let accessToken = '';//4111ac49a15891c4ea08ba9e9fc13b9f - shangri-lafashion
 
-
-
-
 app.get('/', (req, res) => {
     res.send('Welcome to My ShopifyTuscanLeather Store!');
 });
@@ -111,8 +108,7 @@ app.get('/shopify/callback', (req, res) => {
                 
                 
                 await indexDetails.syncProducts(accessToken);
-                // indexDetails.syncPriceQuantity(accessToken);
-                //"0 0,6,15,20 * * *"
+
                 const syncPrices = cron.schedule("0 0,6,15,20 * * *", async () => {await indexDetails.syncPriceQuantity(accessToken, "prices");} , {
                     scheduled: true,
                     timezone: "America/New_York"
@@ -131,8 +127,7 @@ app.get('/shopify/callback', (req, res) => {
 
             })
             .catch((error) => {
-                console.log("err");
-                res.status(error.statusCode).send(error.error.error_description);
+                res.status(error.statusCode).send(error.error_description);
             });
     } else {
         res.status(400).send('Required parameters missing');
