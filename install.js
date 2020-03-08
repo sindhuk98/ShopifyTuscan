@@ -11,6 +11,7 @@ const cron = require("node-cron");
 /** Include required files */
 const indexDetails = require('./index');
 
+
 const apiKey = process.env.SHOPIFY_API_KEY;
 const apiSecret = process.env.SHOPIFY_API_SECRET;
 const port = process.env.PORT || 3000;
@@ -108,7 +109,7 @@ app.get('/shopify/callback', (req, res) => {
                 
                 
                 await indexDetails.syncProducts(accessToken);
-
+              
                 const syncPrices = cron.schedule("0 0,6,15,20 * * *", async () => {await indexDetails.syncPriceQuantity(accessToken, "prices");} , {
                     scheduled: true,
                     timezone: "America/New_York"

@@ -4,10 +4,11 @@ const skusMod = require('./Tuscan/sku');
 const productsShopifyMod = require('./Shopify/product');
 const putShopifyMod = require('./Shopify/variantImages');
 const putInventoryMod = require('./Shopify/Inventory');
-
+const emailMod = require('./email/email');
 
 const syncProducts = async (accessToken) => {
     console.log("inside syncProducts");
+    let emailHtml = '';
 
     /**Get Shopify Store Product id, Handle=ProductCodes and Variants ex: {products: [{id: 1234xxx, handle: TL1234, variants: [...]}],...]}*/
     let productHandleVariants = await productsShopifyMod.getProductFieldInfo(accessToken);
@@ -33,28 +34,28 @@ const syncProducts = async (accessToken) => {
         const prodInfo = await productsMod.getProductsCodesSkuEndPoints(code);
         let unfilteredSkuFlag = true;
         let activeSkuOfProd = [];
-        for(skuDetail of prodInfo.endpoints) {
+        for (skuDetail of prodInfo.endpoints) {
             const sku = skuDetail.sku;
             const skuResponse = await skusMod.skuDetails(sku);
             if (skuResponse.response.saleable) {
                 activeSkuOfProd.push(sku);
-                if (!tuscanProdCodes.includes(code)){
+                if (!tuscanProdCodes.includes(code)) {
                     tuscanProdCodes.push(code);
                 }
-            } else if(!skuResponse.response.saleable && (tuscanProdCodes.includes(code) || unfilteredSkuFlag)) {
-                if(!unsaleableSkuCodes.includes(sku)){
+            } else if (!skuResponse.response.saleable && (tuscanProdCodes.includes(code) || unfilteredSkuFlag)) {
+                if (!unsaleableSkuCodes.includes(sku)) {
                     unsaleableSkuCodes.push(sku);
                 }
             }
             unfilteredSkuFlag = false;
         }
-        if (activeSkuOfProd[0] !== undefined){
+        if (activeSkuOfProd[0] !== undefined) {
             const activeCodeSku = {
                 product_code: code,
                 activeSkus: activeSkuOfProd
             };
-            saleableSkuCodes.push(activeCodeSku); 
-        }       
+            saleableSkuCodes.push(activeCodeSku);
+        }
     };
     // console.log(tuscanProdCodes);
     // console.log(handles);
@@ -64,9 +65,10 @@ const syncProducts = async (accessToken) => {
     for (handle of handles) {
         /**If Shopify Product does not exist in Tuscan Store Delete it from Shopify Store */
         if (!tuscanProdCodes.includes(handle)) {
-            const prodIdHandle = productHandleVariants.products.filter((prodIdHandle) => {return prodIdHandle.handle.toUpperCase() === handle});
+            const prodIdHandle = productHandleVariants.products.filter((prodIdHandle) => { return prodIdHandle.handle.toUpperCase() === handle });
             await productsShopifyMod.deleteProds(prodIdHandle[0].id, accessToken);
-            console.log("product " + handle + " deleted")
+            console.log("<p> Product <b>" + handle + "</b> deleted </p>")
+            emailHtml = emailHtml.concat('<p> Product <font color = "red"><b>' + handle + '</b></font> deleted </p>');
         }
     }
 
@@ -93,54 +95,56 @@ const syncProducts = async (accessToken) => {
                 // console.log(shopifyProduct);
                 const shopifyProdResponse = await productsShopifyMod.postProds(shopifyProduct, accessToken);
                 putShopifyMod.putVariantImages(shopifyProdResponse, accessToken);
-                console.log("product " + prodCode + " added")
+                console.log("Product " + prodCode + " added")
+                emailHtml = emailHtml.concat('<p>Product <font color="green"><b>' + prodCode + '</b></font> added</p>')
             }
         }
     }
 
 
-/**This is used for Adding and Deleting Variants */
+    /**This is used for Adding and Deleting Variants */
     productHandleVariants = await productsShopifyMod.getProductFieldInfo(accessToken);
-    let shopifyIdSkus = productHandleVariants.products.map((product) => { 
+    let shopifyIdSkus = productHandleVariants.products.map((product) => {
         const prodSkus = product.variants.map((variant) => {
             return {
-            variantId: variant.id,
-            variantImageId: variant.image_id,
-            variantSku: variant.sku
-        }
-    });
+                variantId: variant.id,
+                variantImageId: variant.image_id,
+                variantSku: variant.sku
+            }
+        });
         return {
             productId: product.id,
             productSkus: prodSkus
         }
     });
 
-   /** DELETING AN INACTIVE VARIANT/SKU */
+    /** DELETING AN INACTIVE VARIANT/SKU */
     for (product of shopifyIdSkus) {
         /**If Shopify Product does not exist in Tuscan Store Delete it from Shopify Store */
-        for (shopifySku of product.productSkus){
+        for (shopifySku of product.productSkus) {
             if (unsaleableSkuCodes.includes(shopifySku.variantSku)) {
                 console.log("unsaleableSku: " + shopifySku.variantSku);
-                await putShopifyMod.deleteVariant(shopifySku.variantId,shopifySku.variantImageId, product.productId, accessToken);
-                console.log("sku " + shopifySku.variantSku + " deleted")
+                await putShopifyMod.deleteVariant(shopifySku.variantId, shopifySku.variantImageId, product.productId, accessToken);
+                console.log("Sku " + shopifySku.variantSku + " deleted")
+                emailHtml = emailHtml.concat('<p>Sku <font color="red"><b>' + shopifySku.variantSku + '</b></font> deleted</p>');
                 const skuResponse = await skusMod.skuDetails(shopifySku.variantSku);
-                const tagsObject = await productsShopifyMod.getProductTags(accessToken,product.productId);
+                const tagsObject = await productsShopifyMod.getProductTags(accessToken, product.productId);
                 const new_tags = tagsObject.tags.replace(skuResponse.response.color, "");
-                const updated_product  = {
+                const updated_product = {
                     product: {
                         id: product.productId,
                         tags: new_tags
                     }
                 };
-                await productsShopifyMod.putProductInfo(accessToken,product.productId,updated_product);
+                await productsShopifyMod.putProductInfo(accessToken, product.productId, updated_product);
             }
-        } 
+        }
     }
 
     /** ADDING A NEW(ACTIVE) VARIANT/SKU */
     let shopifySkuCodes = shopifyIdSkus.map((idSku) => {
-        const prodSkus = idSku.productSkus.map((productSku) => {return productSku.variantSku});
-        return prodSkus; 
+        const prodSkus = idSku.productSkus.map((productSku) => { return productSku.variantSku });
+        return prodSkus;
     });
     // console.log("shopifySkuCodes: " +shopifySkuCodes);
     shopifySkuCodes = shopifySkuCodes.flat();
@@ -150,16 +154,17 @@ const syncProducts = async (accessToken) => {
                 console.log("Shopify does not include activeSkuCode: " + activeSkuCode);
                 const skuResponse = await skusMod.skuDetails(activeSkuCode);
                 let new_variant = skusMod.createNewVariant(skuResponse, activeSkuCode);
-                new_variant = {"variant": new_variant };
+                new_variant = { "variant": new_variant };
                 const shopifyIdSkuObj = productHandleVariants.products.filter((idHandleVariants) => {
                     return idHandleVariants.handle.toUpperCase() === saleableProd.product_code;
                 });
                 console.log(shopifyIdSkuObj[0].id);
                 const postVariantResponse = await putShopifyMod.postVariant(accessToken, shopifyIdSkuObj[0].id, new_variant);
-                console.log("sku " + activeSkuCode + " added");
+                console.log("Sku " + activeSkuCode + " added");
+                emailHtml = emailHtml.concat('<p>Sku <font color="green"><b>' + activeSkuCode + '</b></font> added</p>')
                 const variantId = postVariantResponse.variant.id;
                 console.log("variantId: " + variantId);
-                
+
                 /**Posting variant image */
                 console.log(skuResponse.response.main_image.url);
                 const imageObj = await skusMod.getImageData(skuResponse.response.main_image.url);
@@ -170,22 +175,28 @@ const syncProducts = async (accessToken) => {
                         "filename": imageObj.filename
                     }
                 }
-                await putShopifyMod.postVariantImage(accessToken,shopifyIdSkuObj[0].id,postImageToVariant);
+                await putShopifyMod.postVariantImage(accessToken, shopifyIdSkuObj[0].id, postImageToVariant);
 
                 /**Updating the product tags */
-                const tagsObject = await productsShopifyMod.getProductTags(accessToken,shopifyIdSkuObj[0].id);
-                const updated_product  = {
+                const tagsObject = await productsShopifyMod.getProductTags(accessToken, shopifyIdSkuObj[0].id);
+                const updated_product = {
                     product: {
                         id: shopifyIdSkuObj[0].id,
                         tags: tagsObject.tags + "," + skuResponse.response.color
                     }
                 };
-                await productsShopifyMod.putProductInfo(accessToken,shopifyIdSkuObj[0].id,updated_product);
+                await productsShopifyMod.putProductInfo(accessToken, shopifyIdSkuObj[0].id, updated_product);
 
             }
         }
     }
     console.log("ended");
+    if (emailHtml !== '') {
+        const mailOptions = emailMod.mailOptions;
+        mailOptions["html"] = emailHtml;
+        emailMod.sendEmail(mailOptions);
+    }
+    
 }
 syncProducts('5476a5ad3e982a661cdad119bc775479');
 
