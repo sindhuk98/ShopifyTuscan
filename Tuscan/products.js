@@ -68,6 +68,6 @@ const createProductDescription = ((productResponse) => {
 });
 
 module.exports = {
-    getProductsCodesSkuEndPoints: getProductsCodesSkuEndPoints,
-    getProductInfo: getProductInfo
+    getProductsCodesSkuEndPoints,
+    getProductInfo
   };

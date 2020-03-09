@@ -158,7 +158,7 @@ const syncProducts = async (accessToken) => {
                 const shopifyIdSkuObj = productHandleVariants.products.filter((idHandleVariants) => {
                     return idHandleVariants.handle.toUpperCase() === saleableProd.product_code;
                 });
-                console.log(shopifyIdSkuObj[0].id);
+                // console.log(shopifyIdSkuObj[0].id);
                 const postVariantResponse = await putShopifyMod.postVariant(accessToken, shopifyIdSkuObj[0].id, new_variant);
                 console.log("Sku " + activeSkuCode + " added");
                 emailHtml = emailHtml.concat('<p>Sku <font color="green"><b>' + activeSkuCode + '</b></font> added</p>')
@@ -257,7 +257,7 @@ const syncPriceQuantity = async (accessToken, param) => {
         }
     }
 }
- syncPriceQuantity('5476a5ad3e982a661cdad119bc775479',"prices");
+ //syncPriceQuantity('5476a5ad3e982a661cdad119bc775479',"prices");
 // syncPriceQuantity('5476a5ad3e982a661cdad119bc775479',"quantity");
 
 module.exports = {

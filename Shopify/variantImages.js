@@ -18,7 +18,6 @@ const putVariantInfo = async (accessToken,price) => {
           "price": price
         }
       }
-    console.log("id: " + variant.id);  
     const putOptions = {
         method: 'PUT',
         uri: constants.variantRequestUrl + "/" + variant.id + ".json",
@@ -107,10 +106,10 @@ return postImageResponse;
 }
 
 module.exports = {
-    putVariantImages: putVariantImages,
-    getVariantIdSku: getVariantIdSku,
-    putVariantInfo: putVariantInfo,
-    deleteVariant: deleteVariant,
-    postVariant: postVariant,
-    postVariantImage: postVariantImage
+    putVariantImages,
+    getVariantIdSku,
+    putVariantInfo,
+    deleteVariant,
+    postVariant,
+    postVariantImage
 }

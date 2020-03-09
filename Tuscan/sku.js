@@ -125,9 +125,9 @@ const skuUpdateDetails = async (updateParam) => {
 }
 
 module.exports = {
-    getShopifyProduct: getShopifyProduct,
-    getImageData: getImageData,
-    skuUpdateDetails: skuUpdateDetails,
-    skuDetails: skuDetails,
-    createNewVariant: createNewVariant
+    getShopifyProduct,
+    getImageData,
+    skuUpdateDetails,
+    skuDetails,
+    createNewVariant
 }
