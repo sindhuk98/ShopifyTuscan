@@ -198,21 +198,36 @@ const syncProducts = async (accessToken) => {
     }
     
 }
-syncProducts('5476a5ad3e982a661cdad119bc775479');
+//syncProducts('5476a5ad3e982a661cdad119bc775479');
 
 
-
+/** The Function 'syncPriceQuantity' 
+ * takes 2 parmaeters 
+ *      1) access token 
+ *      2)param which can either be "prices" or "quantity".
+ * 1) "productsShopifyMod.getProductFieldInfo"  -Gets all the Product Data from Shopify i.e ShopifyProductId, Handle(TLXXXXXX) And It's Variants as a response.
+ * 2) "skusMod.skuUpdateDetails(param)"Gets all the Items(Or Sku's) Availablity or Prices depending upon the parmater being passed. 
+ *          param = "prices" OR "quantity"
+ * 
+ * 
+ */
 
 
 /**takes parameters accessToken and param: "prices","quantity" */
 const syncPriceQuantity = async (accessToken, param) => {
-    console.log("syncPriceQuantity");
+
+    /**Console Logging -- This is the Beginning of Syncing Price and Quantity Depending upon the Parameter Passed. */
+    console.log("Begining to Sync "+ param);
 
     /**productVariants has product id, handle, variants */
-    const productVariants = await productsShopifyMod.getProductFieldInfo(accessToken);
+    /**Gets all the Product Data from Shopify i.e ShopifyProductId, Handle(TLXXXXXX) And It's Variants as a response. */
+        const productVariants = await productsShopifyMod.getProductFieldInfo(accessToken);
 
-    /** SkuDetails is a list of skus and param*/
-    const skuDetails = await skusMod.skuUpdateDetails(param);
+         
+
+        /** SkuDetails is a list of skus and param*/
+        const skuDetails = await skusMod.skuUpdateDetails(param);
+  
 
 
     for (variants of productVariants.products) {
@@ -242,7 +257,7 @@ const syncPriceQuantity = async (accessToken, param) => {
         }
     }
 }
-// syncPriceQuantity('5476a5ad3e982a661cdad119bc775479',"prices");
+ syncPriceQuantity('5476a5ad3e982a661cdad119bc775479',"prices");
 // syncPriceQuantity('5476a5ad3e982a661cdad119bc775479',"quantity");
 
 module.exports = {
