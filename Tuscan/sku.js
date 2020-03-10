@@ -15,9 +15,7 @@ const skuDetails = async (sku) => {
     const skuResponse = await request(constants.skuRequestUrl + sku, skuApiOptions)
     return skuResponse;
 }
-const asyncFunc = async () => {
-    console.log(await skuDetails());
-}
+
 asyncFunc();
 const createNewVariant = (skuResponse, skuCode) => {
     const new_variant = {// DO NOT APPEND {variant: ...}
