@@ -1,4 +1,4 @@
-const shop = 'shangri-lafashion'; //change shop name in production
+const shop = 'tuscstore'; //change shop name in production
 const vendor = 'Tuscany%20Leather';
 const fields = 'id,handle,variants';
 

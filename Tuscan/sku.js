@@ -12,10 +12,13 @@ const skuApiOptions = {
 };
 
 const skuDetails = async (sku) => {
-    const skuResponse = await request(constants.skuRequestUrl + sku, skuApiOptions);
+    const skuResponse = await request(constants.skuRequestUrl + sku, skuApiOptions)
     return skuResponse;
 }
-
+const asyncFunc = async () => {
+    console.log(await skuDetails());
+}
+asyncFunc();
 const createNewVariant = (skuResponse, skuCode) => {
     const new_variant = {// DO NOT APPEND {variant: ...}
         "option1": skuResponse.response.color,
@@ -37,6 +40,7 @@ const getShopifyProduct = async (prodBodyAndSkuURLs, categName) => {
     /**Variants to hold the SKU Variants for Shopify */
     let variants = [];
     let images = [];
+    let additionalImages =[];
     let tags = [];
     let sku;
     for (const skuEndpoint of prodBodyAndSkuURLs.endpoints) {
@@ -55,9 +59,14 @@ const getShopifyProduct = async (prodBodyAndSkuURLs, categName) => {
             /**Buffer the base64 data from the Main Image URL obtained from sku response */
             console.log(sku.response.main_image.url, sku.response.name);
             images.push(await getImageData(sku.response.main_image.url));
+            // for(extraImages of sku.response.additional_images){
+            //     additionalImages.push(await getImageData(extraImages.url));
+            //     // console.log(additionalImages);
+            // }
         }
     }
-
+    // images = images.concat(additionalImages);
+    
     if (variants[0] !== undefined) {
         /**Create the Shopify Product to be posted and Return it */
         const shopifyProduct = {

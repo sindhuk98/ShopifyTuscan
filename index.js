@@ -19,12 +19,12 @@ const syncProducts = async (accessToken) => {
     /**Get the Category Name and Product Codes ex: [{categoryName: "Leather Bag", categoryProducts: [TL141911, TL14188,...]}, ...]*/
     const categNameAndProdCodes = await categoriesMod.getProductCodes();
 
-
     /** Get tuscanProdCodes(productIds: ex: [[TL141911,...], ...]) for each category from  productHandleVariants into a nested array  */
     let tuscanProdCodesUnfiltered = categNameAndProdCodes.map((categAndCode) => { return categAndCode.categProducts });
 
     /** Flattening tuscanProdCodes ex: [TL141911,...]*/
-    tuscanProdCodesUnfiltered = tuscanProdCodesUnfiltered.flat();
+    tuscanProdCodesUnfiltered = tuscanProdCodesUnfiltered.flat(); //simple loop concat instead of flat??
+
     let tuscanProdCodes = [];
     let unsaleableSkuCodes = []; //unsaleable skus of saleable products
     let saleableSkuCodes = [];
@@ -45,7 +45,7 @@ const syncProducts = async (accessToken) => {
             } else if (!skuResponse.response.saleable && (tuscanProdCodes.includes(code) || unfilteredSkuFlag)) {
                 if (!unsaleableSkuCodes.includes(sku)) {
                     unsaleableSkuCodes.push(sku);
-                }
+                }//remove if condition check??
             }
             unfilteredSkuFlag = false;
         }
@@ -198,7 +198,7 @@ const syncProducts = async (accessToken) => {
     }
     
 }
-//syncProducts('5476a5ad3e982a661cdad119bc775479');
+syncProducts('5476a5ad3e982a661cdad119bc775479');
 
 
 /** The Function 'syncPriceQuantity' 

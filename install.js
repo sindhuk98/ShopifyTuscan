@@ -16,8 +16,8 @@ const apiKey = process.env.SHOPIFY_API_KEY;
 const apiSecret = process.env.SHOPIFY_API_SECRET;
 const port = process.env.PORT || 3000;
 const scopes = 'read_products,write_products,write_inventory';
-const forwardingAddress = "https://shopifytuscan.herokuapp.com"; // Replace this with your heroku/ngrok Forwarding address
-let accessToken = '';//4111ac49a15891c4ea08ba9e9fc13b9f - shangri-lafashion
+const forwardingAddress = "https://09a40b39.ngrok.io"; // Replace this with your heroku/ngrok Forwarding address
+let accessToken = '';//e8331e47bc0c9f7fc6cd15d980cba4d5 - shangri-lafashion
 
 app.get('/', (req, res) => {
     res.send('Welcome to My ShopifyTuscanLeather Store!');
