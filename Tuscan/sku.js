@@ -16,7 +16,6 @@ const skuDetails = async (sku) => {
     return skuResponse;
 }
 
-asyncFunc();
 const createNewVariant = (skuResponse, skuCode) => {
     const new_variant = {// DO NOT APPEND {variant: ...}
         "option1": skuResponse.response.color,
