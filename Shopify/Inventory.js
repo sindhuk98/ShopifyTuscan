@@ -3,7 +3,7 @@ const request = require('request-promise');
 const constants = require('./constants');
 
 const putInventoryInfo = async(accessToken,item_id, quantity) => { //40457961517
-    const locationId = getLocationId(accessToken);
+    const locationId = await getLocationId(accessToken);
     console.log("LocationID: "+locationId);
     const new_quantity = {
         "location_id": locationId, 
