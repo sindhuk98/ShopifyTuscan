@@ -198,7 +198,7 @@ const syncProducts = async (accessToken) => {
     }
     
 }
-syncProducts('5476a5ad3e982a661cdad119bc775479');
+//syncProducts('5476a5ad3e982a661cdad119bc775479');
 
 
 /** The Function 'syncPriceQuantity' 
