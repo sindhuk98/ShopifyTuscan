@@ -146,7 +146,7 @@ const syncProducts = async (accessToken) => {
         const prodSkus = idSku.productSkus.map((productSku) => { return productSku.variantSku });
         return prodSkus;
     });
-    // console.log("shopifySkuCodes: " +shopifySkuCodes);
+    console.log(typeOf(shopifySkuCodes));
     shopifySkuCodes = shopifySkuCodes.flat();
     for (saleableProd of saleableSkuCodes) {
         for (activeSkuCode of saleableProd.activeSkus) {
