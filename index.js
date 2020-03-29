@@ -58,7 +58,7 @@ const syncProducts = async (accessToken) => {
         }
     };
     // console.log(tuscanProdCodes);
-    // console.log(handles);
+     console.log(handles);
     // console.log(unsaleableSkuCodes);
 
     /** DELETING A PRODUCT */
@@ -147,7 +147,7 @@ const syncProducts = async (accessToken) => {
         return prodSkus;
     });
     shopifySkuCodes = shopifySkuCodes.flat();
-    console.log("The DataType of shopifySkuCodes = " + typeOf(shopifySkuCodes));
+    console.log("shopifySkuCodes: " + shopifySkuCodes);
     for (saleableProd of saleableSkuCodes) {
         for (activeSkuCode of saleableProd.activeSkus) {
             if (!shopifySkuCodes.includes(activeSkuCode)) {

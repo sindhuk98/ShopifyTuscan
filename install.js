@@ -108,7 +108,7 @@ app.get('/shopify/callback', (req, res) => {
                     });
                 
                 
-                await indexDetails.syncProducts(accessToken);
+                await indexDetails.syncProducts(accessToken);  
               
                 const syncPrices = cron.schedule("0 0,6,15,20 * * *", async () => {await indexDetails.syncPriceQuantity(accessToken, "prices");} , {
                     scheduled: true,
@@ -122,9 +122,9 @@ app.get('/shopify/callback', (req, res) => {
                     scheduled: true,
                     timezone: "America/New_York"
                 });
-                syncPrices.start();
-                syncQuantities.start();
-                syncProducts.start();
+                syncPrices.start();    
+                syncQuantities.start();   
+                syncProducts.start();   
 
             })
             .catch((error) => {
