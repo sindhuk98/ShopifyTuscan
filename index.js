@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 const dotenv = require('dotenv').config();
 const express = require('express');
 const app = express();
@@ -39,6 +40,80 @@ app.get('/shopify', (req, res) => {
         res.redirect(installUrl);
     } else {
         return res.status(400).send('Missing shop parameter. Please add ?shop=your-development-shop.myshopify.com to your request');
+=======
+const productsMod = require('./Tuscan/products');
+const categoriesMod = require('./Tuscan/categories');
+const skusMod = require('./Tuscan/sku');
+const productsShopifyMod = require('./Shopify/product');
+const putShopifyMod = require('./Shopify/variantImages');
+const putInventoryMod = require('./Shopify/Inventory');
+const emailMod = require('./email/email');
+
+const syncProducts = async (accessToken) => {
+    console.log("inside syncProducts");
+    let emailHtml = '';
+
+    /**Get Shopify Store Product id, Handle=ProductCodes and Variants ex: {products: [{id: 1234xxx, handle: TL1234, variants: [...]}],...]}*/
+    let productHandleVariants = await productsShopifyMod.getProductFieldInfo(accessToken);
+
+    /** Get handles(productCodes: ex: [TL141911,...]) from  productHandleVariants into an array*/
+    const handles = productHandleVariants.products.map((id) => { return id.handle.toUpperCase(); });
+
+    /**Get the Category Name and Product Codes ex: [{categoryName: "Leather Bag", categoryProducts: [TL141911, TL14188,...]}, ...]*/
+    const categNameAndProdCodes = await categoriesMod.getProductCodes();
+
+    /** Get tuscanProdCodes(productIds: ex: [[TL141911,...], ...]) for each category from  productHandleVariants into a nested array  */
+    let tuscanProdCodesUnfiltered = categNameAndProdCodes.map((categAndCode) => { return categAndCode.categProducts });
+
+    /** Flattening tuscanProdCodes ex: [TL141911,...]*/
+    tuscanProdCodesUnfiltered = tuscanProdCodesUnfiltered.flat(); //simple loop concat instead of flat??
+
+    let tuscanProdCodes = [];
+    let unsaleableSkuCodes = []; //unsaleable skus of saleable products
+    let saleableSkuCodes = [];
+
+    /** collect all saleable and unsaleable skus of Tuscany by looking at the "saleable" key for each sku */
+    for (code of tuscanProdCodesUnfiltered) {
+        const prodInfo = await productsMod.getProductsCodesSkuEndPoints(code);
+        let unfilteredSkuFlag = true;
+        let activeSkuOfProd = [];
+        for (skuDetail of prodInfo.endpoints) {
+            const sku = skuDetail.sku;
+            const skuResponse = await skusMod.skuDetails(sku);
+            if (skuResponse.response.saleable) {
+                activeSkuOfProd.push(sku);
+                if (!tuscanProdCodes.includes(code)) {
+                    tuscanProdCodes.push(code);
+                }
+            } else if (!skuResponse.response.saleable && (tuscanProdCodes.includes(code) || unfilteredSkuFlag)) {
+                if (!unsaleableSkuCodes.includes(sku)) {
+                    unsaleableSkuCodes.push(sku);
+                }//remove if condition check??
+            }
+            unfilteredSkuFlag = false;
+        }
+        if (activeSkuOfProd[0] !== undefined) {
+            const activeCodeSku = {
+                product_code: code,
+                activeSkus: activeSkuOfProd
+            };
+            saleableSkuCodes.push(activeCodeSku);
+        }
+    };
+     console.log("tuscanprodcodes: "+tuscanProdCodes);
+     console.log("handles: "+handles);
+    // console.log(unsaleableSkuCodes);
+
+    /** DELETING A PRODUCT */
+    for (handle of handles) {
+        /**If Shopify Product does not exist in Tuscan Store Delete it from Shopify Store */
+        if (!tuscanProdCodes.includes(handle)) {
+            const prodIdHandle = productHandleVariants.products.filter((prodIdHandle) => { return prodIdHandle.handle.toUpperCase() === handle });
+            await productsShopifyMod.deleteProds(prodIdHandle[0].id, accessToken);
+            console.log("<p> Product <b>" + handle + "</b> deleted </p>")
+            emailHtml = emailHtml.concat('<p> Product <font color = "red"><b>' + handle + '</b></font> deleted </p>');
+        }
+>>>>>>> 2647597... added shopify product pagaination feature
     }
 });
 
