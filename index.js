@@ -57,8 +57,8 @@ const syncProducts = async (accessToken) => {
             saleableSkuCodes.push(activeCodeSku);
         }
     };
-    // console.log(tuscanProdCodes);
-     console.log(handles);
+     console.log("tuscanprodcodes: "+tuscanProdCodes);
+     console.log("handles: "+handles);
     // console.log(unsaleableSkuCodes);
 
     /** DELETING A PRODUCT */

@@ -26,7 +26,7 @@ let categoriesApiOptions = {
 const getCatergories = async () => {
     try {
         const categoriesResponse = await request(categoriesApiOptions);
-        const categories = categoriesResponse.response.slice(4,5);  //REMOVE SLICE*****************************************************
+        const categories = categoriesResponse.response;//.slice(4,5);  //REMOVE SLICE*****************************************************
         return categories;
     }
     catch (error) {

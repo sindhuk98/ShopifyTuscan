@@ -3,10 +3,38 @@ const request = require('request-promise');
 
 const constants = require('./constants')
 
+
+/** Helper Function for Shopify Product API Pagination */
+const nextPageLink = ((response) => {
+    let linkString = "";
+    if (response.headers.link && response.headers.link.includes("next")) {
+        linkString = response.headers.link;
+        linkString = linkString.substr(linkString.indexOf('<')+1);
+        if (linkString.includes("previous")) {
+            linkString = linkString.substr(linkString.indexOf(',') + 3);
+        }
+        linkString = linkString.substr(0,linkString.indexOf('>'));
+
+    }
+    return linkString;
+}) 
+
+
+/** Product API Calls through pagination */
 const getProductFieldInfo = async(accessToken) => {
-        //const productIdHandleVariants = await request.get(constants.getProductFieldsUrl, { headers: { 'X-Shopify-Access-Token': accessToken }, json: true });
-        return await request.get(constants.getProductFieldsUrl, { headers: { 'X-Shopify-Access-Token': accessToken }, json: true })
-        //return productIdHandleVariants;   
+    let url = constants.getProductFieldsUrl;
+    let productArr = [];
+    const productObj = {};
+
+    do{
+        const product = await request.get(url, { headers: { 'X-Shopify-Access-Token': accessToken },resolveWithFullResponse: true, json: true })
+        productArr.push(product.body.products);
+        url = nextPageLink(product);
+    }
+    while(url!=="");
+
+    productObj.products = productArr.flat();
+    return productObj;
 }
 
 const getProductTags = async(accessToken,productId) => {
