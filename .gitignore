@@ -1,1 +1,5 @@
 node_modules
+.next
+pages
+productsample.json
+referencecode.js
