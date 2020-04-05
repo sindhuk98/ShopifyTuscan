@@ -12,7 +12,7 @@ const skuApiOptions = {
 };
 
 const skuDetails = async (sku) => {
-    const skuResponse = await request(constants.skuRequestUrl + sku+"&currency=GBP", skuApiOptions)
+    const skuResponse = await request(constants.skuRequestUrl + sku+"&currency=EUR", skuApiOptions)
     return skuResponse;
 }
 
