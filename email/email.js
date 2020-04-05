@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
 
    const mailOptions = {
     from: 'planetpegasi@gmail.com', // sender address
-    to: 'sidsampras23@gmail.com',//shangrilafashions', // list of receivers
+    to: 'shangrilafashions@gmail.com',//shangrilafashions', // list of receivers
     subject: 'TuscanApp Products/Variants Updates' // Subject line
     //html: '<p>YaY Planet Pegasi You guys Rock</p>'// plain text body
   };
