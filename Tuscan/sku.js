@@ -12,7 +12,7 @@ const skuApiOptions = {
 };
 
 const skuDetails = async (sku) => {
-    const skuResponse = await request(constants.skuRequestUrl + sku, skuApiOptions)
+    const skuResponse = await request(constants.skuRequestUrl + sku+"&currency=GBP", skuApiOptions)
     return skuResponse;
 }
 
@@ -24,7 +24,19 @@ const createNewVariant = (skuResponse, skuCode) => {
         "price": skuResponse.response.prices.list.default,
         "barcode": skuResponse.response.ean,
         "inventory_policy": "continue",
-        "inventory_management": "shopify"
+        "inventory_management": "shopify",
+        "presentment_prices": [
+            {
+              "price": {
+                "currency_code": "GBP",
+                "amount": skuResponse.response.prices.list.default
+              },
+              "compare_at_price": {
+                "currency_code": "GBP",
+                "amount": skuResponse.response.prices.list.default
+              }
+            }
+          ]
     }
     return new_variant;
 }
@@ -42,7 +54,8 @@ const getShopifyProduct = async (prodBodyAndSkuURLs, categName) => {
     let sku;
     for (const skuEndpoint of prodBodyAndSkuURLs.endpoints) {
         /**Get SKU info for each Sku endpoint of a product */
-        sku = await request(skuEndpoint.details_endpoint, skuApiOptions); // REVISIT: call skuDetails instead**********
+       // sku = await request(skuEndpoint.details_endpoint, skuApiOptions); // REVISIT: call skuDetails instead**********
+       sku = await skuDetails(skuEndpoint.sku);
         /**Checks if sku is saleable */
         if (sku.response.saleable) {
             /** Define tags for product */

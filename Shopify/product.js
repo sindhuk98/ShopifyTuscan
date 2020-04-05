@@ -86,7 +86,8 @@ const postProds = async (new_product, accessToken) => {
         uri: constants.prodRequestUrl + ".json",
         json: true,
         headers: {
-            'X-Shopify-Access-Token': accessToken, //hardcode for time-being************************
+            'X-Shopify-Access-Token': accessToken, 
+            'X-Shopify-Api-Features': 'include-presentment-prices', 
             'content-type': 'application/json'
         },
         body: new_product
