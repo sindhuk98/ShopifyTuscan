@@ -6,31 +6,31 @@ const putShopifyMod = require('./Shopify/variantImages');
 const putInventoryMod = require('./Shopify/Inventory');
 const emailMod = require('./email/email');
 
-const syncProducts = async (accessToken) => {
+/*const syncProducts = async (accessToken) => {
     console.log("inside syncProducts");
     let emailHtml = '';
 
     /**Get Shopify Store Product id, Handle=ProductCodes and Variants ex: {products: [{id: 1234xxx, handle: TL1234, variants: [...]}],...]}*/
-    let productHandleVariants = await productsShopifyMod.getProductFieldInfo(accessToken);
+   // let productHandleVariants = await productsShopifyMod.getProductFieldInfo(accessToken); 
 
     /** Get handles(productCodes: ex: [TL141911,...]) from  productHandleVariants into an array*/
-    const handles = productHandleVariants.products.map((id) => { return id.handle.toUpperCase(); });
+   // const handles = productHandleVariants.products.map((id) => { return id.handle.toUpperCase(); });
 
     /**Get the Category Name and Product Codes ex: [{categoryName: "Leather Bag", categoryProducts: [TL141911, TL14188,...]}, ...]*/
-    const categNameAndProdCodes = await categoriesMod.getProductCodes();
+   // const categNameAndProdCodes = await categoriesMod.getProductCodes();
 
     /** Get tuscanProdCodes(productIds: ex: [[TL141911,...], ...]) for each category from  productHandleVariants into a nested array  */
-    let tuscanProdCodesUnfiltered = categNameAndProdCodes.map((categAndCode) => { return categAndCode.categProducts });
+    //let tuscanProdCodesUnfiltered = categNameAndProdCodes.map((categAndCode) => { return categAndCode.categProducts });
 
     /** Flattening tuscanProdCodes ex: [TL141911,...]*/
-    tuscanProdCodesUnfiltered = tuscanProdCodesUnfiltered.flat(); //simple loop concat instead of flat??
+   // tuscanProdCodesUnfiltered = tuscanProdCodesUnfiltered.flat(); //simple loop concat instead of flat??
 
-    let tuscanProdCodes = [];
-    let unsaleableSkuCodes = []; //unsaleable skus of saleable products
-    let saleableSkuCodes = [];
+   // let tuscanProdCodes = [];
+   // let unsaleableSkuCodes = []; //unsaleable skus of saleable products
+   // let saleableSkuCodes = [];
 
     /** collect all saleable and unsaleable skus of Tuscany by looking at the "saleable" key for each sku */
-    for (code of tuscanProdCodesUnfiltered) {
+   /* for (code of tuscanProdCodesUnfiltered) {
         const prodInfo = await productsMod.getProductsCodesSkuEndPoints(code);
         let unfilteredSkuFlag = true;
         let activeSkuOfProd = [];
@@ -62,21 +62,21 @@ const syncProducts = async (accessToken) => {
     // console.log(unsaleableSkuCodes);
 
     /** DELETING A PRODUCT */
-    for (handle of handles) {
+   /* for (handle of handles) {
         /**If Shopify Product does not exist in Tuscan Store Delete it from Shopify Store */
-        if (!tuscanProdCodes.includes(handle)) {
+      /*  if (!tuscanProdCodes.includes(handle)) {
             const prodIdHandle = productHandleVariants.products.filter((prodIdHandle) => { return prodIdHandle.handle.toUpperCase() === handle });
             await productsShopifyMod.deleteProds(prodIdHandle[0].id, accessToken);
             console.log("<p> Product <b>" + handle + "</b> deleted </p>")
             emailHtml = emailHtml.concat('<p> Product <font color = "red"><b>' + handle + '</b></font> deleted </p>');
         }
-    }
+    } 
 
     /** ADDING A PRODUCT */
-    for (prodCode of tuscanProdCodes) {
+  /*  for (prodCode of tuscanProdCodes) {
 
         /**Get the CategoryName for the given ProdCode */
-        let categoryName = '';
+     /*   let categoryName = '';
         for (categAndCode of categNameAndProdCodes) {
             if (categAndCode.categProducts.includes(prodCode)) {
                 categoryName = categAndCode.categoryName;
@@ -85,7 +85,7 @@ const syncProducts = async (accessToken) => {
         }//Used break - must improve efficiency
 
         /**If Tuscany Product does not exist in Shopify Store Add it to Shopify Store */
-        if (!handles.includes(prodCode)) {
+      /*  if (!handles.includes(prodCode)) {
 
             const newSkuEndpoints = await productsMod.getProductsCodesSkuEndPoints(prodCode);
             const shopifyProduct = await skusMod.getShopifyProduct(newSkuEndpoints, categoryName);
@@ -103,7 +103,7 @@ const syncProducts = async (accessToken) => {
 
 
     /**This is used for Adding and Deleting Variants */
-    productHandleVariants = await productsShopifyMod.getProductFieldInfo(accessToken);
+  /*  productHandleVariants = await productsShopifyMod.getProductFieldInfo(accessToken);
     let shopifyIdSkus = productHandleVariants.products.map((product) => {
         const prodSkus = product.variants.map((variant) => {
             return {
@@ -119,9 +119,9 @@ const syncProducts = async (accessToken) => {
     });
 
     /** DELETING AN INACTIVE VARIANT/SKU */
-    for (product of shopifyIdSkus) {
+   /* for (product of shopifyIdSkus) {
         /**If Shopify Product does not exist in Tuscan Store Delete it from Shopify Store */
-        for (shopifySku of product.productSkus) {
+     /*   for (shopifySku of product.productSkus) {
             if (unsaleableSkuCodes.includes(shopifySku.variantSku)) {
                 console.log("unsaleableSku: " + shopifySku.variantSku);
                 await putShopifyMod.deleteVariant(shopifySku.variantId, shopifySku.variantImageId, product.productId, accessToken);
@@ -142,7 +142,7 @@ const syncProducts = async (accessToken) => {
     }
 
     /** ADDING A NEW(ACTIVE) VARIANT/SKU */
-    let shopifySkuCodes = shopifyIdSkus.map((idSku) => {
+   /* let shopifySkuCodes = shopifyIdSkus.map((idSku) => {
         const prodSkus = idSku.productSkus.map((productSku) => { return productSku.variantSku });
         return prodSkus;
     });
@@ -166,7 +166,7 @@ const syncProducts = async (accessToken) => {
                 console.log("variantId: " + variantId);
 
                 /**Posting variant image */
-                console.log(skuResponse.response.main_image.url);
+          /*      console.log(skuResponse.response.main_image.url);
                 const imageObj = await skusMod.getImageData(skuResponse.response.main_image.url);
                 const postImageToVariant = {
                     image: {
@@ -178,7 +178,7 @@ const syncProducts = async (accessToken) => {
                 await putShopifyMod.postVariantImage(accessToken, shopifyIdSkuObj[0].id, postImageToVariant);
 
                 /**Updating the product tags */
-                const tagsObject = await productsShopifyMod.getProductTags(accessToken, shopifyIdSkuObj[0].id);
+           /*     const tagsObject = await productsShopifyMod.getProductTags(accessToken, shopifyIdSkuObj[0].id);
                 const updated_product = {
                     product: {
                         id: shopifyIdSkuObj[0].id,
@@ -214,19 +214,19 @@ const syncProducts = async (accessToken) => {
 
 
 /**takes parameters accessToken and param: "prices","quantity" */
-const syncPriceQuantity = async (accessToken, param) => {
+/*const syncPriceQuantity = async (accessToken, param) => {
 
     /**Console Logging -- This is the Beginning of Syncing Price and Quantity Depending upon the Parameter Passed. */
-    console.log("Begining to Sync "+ param);
+   /* console.log("Begining to Sync "+ param);
 
     /**productVariants has product id, handle, variants */
     /**Gets all the Product Data from Shopify i.e ShopifyProductId, Handle(TLXXXXXX) And It's Variants as a response. */
-        const productVariants = await productsShopifyMod.getProductFieldInfo(accessToken);
+       /* const productVariants = await productsShopifyMod.getProductFieldInfo(accessToken);
 
          
 
         /** SkuDetails is a list of skus and param*/
-        const skuDetails = await skusMod.skuUpdateDetails(param);
+      /*  const skuDetails = await skusMod.skuUpdateDetails(param);
   
 
 
@@ -263,6 +263,6 @@ const syncPriceQuantity = async (accessToken, param) => {
 module.exports = {
     syncProducts: syncProducts,
     syncPriceQuantity: syncPriceQuantity
-}
+} 
 
 //CANNOT INSTALL/RUN APP AT 12:00AM
